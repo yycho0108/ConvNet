@@ -22,4 +22,7 @@ extern void convolve_d(double* i, double* k, double* o,
 extern void convolve(double* i, double* k, double* o,
 		int n, int m, int r);
 
+extern void correlate_d(double* d_i, double* d_k, double* d_o,
+		int n, int m, int r);
+
 #endif /* UTILITY_H_ */

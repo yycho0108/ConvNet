@@ -7,8 +7,12 @@
 
 #include "Size.h"
 
-Size::Size(int n, int m):n(n),m(m) {
+Size::Size(int w, int h):w(w),h(h),wh(w*h){
 	// TODO Auto-generated constructor stub
+
+}
+
+Size::Size(const Size& s):w(s.w),h(s.h),wh(s.wh){
 
 }
 
@@ -16,3 +20,14 @@ Size::~Size() {
 	// TODO Auto-generated destructor stub
 }
 
+Size& operator=(const Size& s){
+	w = s.w;
+	h = s.h;
+	wh = s.wh;
+}
+bool Size::operator!=(Size& s){
+	return (w != s.w || h != s.h);
+}
+bool Size::operator==(Size& s){
+	return !(*this != s);
+}

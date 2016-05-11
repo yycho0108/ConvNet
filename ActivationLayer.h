@@ -18,12 +18,11 @@ private:
 public:
 	ActivationLayer(std::string _f);
 	~ActivationLayer();
+	virtual void setup(Size& s, int& d);
+
 	virtual std::vector<Matrix>& FF(std::vector<Matrix>& I);
 	virtual std::vector<Matrix>& BP(std::vector<Matrix>& G);
-	virtual void setup(Size& s, int& d);
-	virtual void outDim(Size&, int&);
-	virtual Size outputSize();
-
+	virtual void update();
 	//no need to update since to trainable parameter
 	//virtual void save(FileStorage& f, int i);
 	//virtual void load(FileStorage& f, int i);

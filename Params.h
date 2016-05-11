@@ -10,10 +10,11 @@
 
 //all the hyperparameters belong here
 
-extern double eps;
-extern double gamma;
-extern double alpha_q; //q-learning rate
-extern double alpha_n; //network learning rate
-extern double momentum; //delta momentum
+extern double EPS;
+extern double GAMMA;
+extern double ALPHA_Q; //q-learning rate
+extern double ETA; //network learning rate
+extern double MOMENTUM; //delta momentum
+extern double DECAY;
 
 #endif /* PARAMS_H_ */

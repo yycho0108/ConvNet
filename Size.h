@@ -9,10 +9,18 @@
 #define __SIZE_H__
 
 struct Size {
-	int n,m;
+	int w,h,wh;
 public:
-	Size(int n, int m);
+	Size(int w=0, int h=0);
+	Size(const Size& s);
+
 	virtual ~Size();
+
+	Size& operator=(const Size&);
+
+	bool operator==(Size&);
+	bool operator!=(Size&);
+
 };
 
 #endif /* SIZE_H_ */

@@ -19,20 +19,16 @@ private:
 	Size s;
 	int d_in, d_out;
 	bool** connection;
-	double m; //momentum
 	std::vector<Matrix> W, B, dW, dW_p, dB, dB_p, I, O, G;
 
 public:
 	ConvolutionLayer(int d_out=1); //# kernels
-	virtual ~ConvolutionLayer();
+	~ConvolutionLayer();
+	virtual void setup(Size&,int&);
 
 	virtual std::vector<Matrix>& FF(std::vector<Matrix>& I);
 	virtual std::vector<Matrix>& BP(std::vector<Matrix>& G);
-
 	virtual void update();
-
-	virtual void setup(Size&,int&);
-	std::vector<Matrix>& getW();
 
 };
 

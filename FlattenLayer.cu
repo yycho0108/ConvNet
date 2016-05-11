@@ -26,25 +26,21 @@ std::vector<Matrix>& FlattenLayer::FF(std::vector<Matrix>& _I) {
 	double* o_ptr = O[0].d_data();
 	auto sz = s_in.wh * sizeof(double);
 
-	for (int i = 0; i < d; ++i) {
+	for (int i = 0; i < d_in; ++i) {
 		//TODO : copying to I is unnecessary, but left here for clarity for now
 		_I[i].copyTo(I[i]);
 
 		cudaMemcpy(o_ptr + s_in.wh, I[i].d_data(), sz,
 				cudaMemcpyDeviceToDevice);
 	}
-	s = I[0].size(); //will be unnecessary soon
-
 	return O;
 }
 
 std::vector<Matrix>& FlattenLayer::BP(std::vector<Matrix>& _G) {
-	int l = s.width * s.height;
-
 	double* g_ptr = _G[0].d_data();
 	auto sz = s_in.wh * sizeof(double);
 
-	for (int i = 0; i < d; ++i) {
+	for (int i = 0; i < d_in; ++i) {
 		cudaMemcpy(G[i].d_data(), g_ptr + s_in.wh, sz,
 				cudaMemcpyDeviceToDevice);
 	}

@@ -25,4 +25,13 @@ extern void convolve(double* i, double* k, double* o,
 extern void correlate_d(double* d_i, double* d_k, double* d_o,
 		int n, int m, int r);
 
+extern void add(double* a, double* b, double* o, int n);
+extern void sub(double* a, double* b, double* o, int n);
+extern void mul(double* a, double* b, double* o, int n);
+extern void div(double* a, double* b, double* o, int n);
+extern void add(double* a, double b, double* o, int n);
+extern void sub(double* a, double b, double* o, int n);
+extern void mul(double* a, double b, double* o, int n);
+extern void div(double* a, double b, double* o, int n);
+
 #endif /* UTILITY_H_ */

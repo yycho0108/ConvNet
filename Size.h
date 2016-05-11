@@ -18,8 +18,8 @@ public:
 
 	Size& operator=(const Size&);
 
-	bool operator==(Size&);
-	bool operator!=(Size&);
+	bool operator==(const Size&);
+	bool operator!=(const Size&);
 
 };
 

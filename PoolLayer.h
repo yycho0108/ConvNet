@@ -10,13 +10,14 @@ class PoolLayer : public Layer{
 	int d;
 	std::vector<std::vector<std::vector<Size>>> S; //switches
 
-	std::vector<int*> SW; //Switch list
+	std::vector<int*> SW; //Switch lists
 	std::vector<Matrix> I;
 	std::vector<Matrix> O;
 	std::vector<Matrix> G;
 
 public:
 	PoolLayer(Size s_s, Size s_p);
+	~PoolLayer();
 	virtual void setup(Size& s, int& d);
 
 	virtual std::vector<Matrix>& FF(std::vector<Matrix>& I);

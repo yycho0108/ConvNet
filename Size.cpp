@@ -20,14 +20,14 @@ Size::~Size() {
 	// TODO Auto-generated destructor stub
 }
 
-Size& operator=(const Size& s){
+Size& Size::operator=(const Size& s){
 	w = s.w;
 	h = s.h;
 	wh = s.wh;
 }
-bool Size::operator!=(Size& s){
+bool Size::operator!=(const Size& s){
 	return (w != s.w || h != s.h);
 }
-bool Size::operator==(Size& s){
+bool Size::operator==(const Size& s){
 	return !(*this != s);
 }

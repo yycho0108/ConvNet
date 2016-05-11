@@ -10,21 +10,24 @@
 
 using dfun = double (*)(double);
 
-__global__ void rand(double* a){
+__global__ void _rand(double* a){
 	auto w = blockDim.x;
 	auto i = threadIdx.y;
 	auto j = threadIdx.x;
 	//TODO : find proper random-number-generation
-	a[idx(i,j,w)] = drand48();
+	a[idx(i,j,w)] = 0.1;
 
 }
-__global__ double vdot(double* a, double* b, int n){ //dot product of two vectors.
-	//TODO : figure out if this needs to be __device__
+__device__ double vdot(double* a, double* b, int n){ //dot product of two vectors.
 	double res = 0;
 	for(int i=0;i<n;++i){
 		res += a[i]*b[i];
 	}
 	return res;
+}
+__global__ void _apply(double* I, dfun f){
+	int i = threadIdx.x;
+	I[i] = f(I[i]);
 }
 
 __global__ void dotT(double* a, double* b, double* o, int com){
@@ -40,7 +43,7 @@ __global__ void dotT(double* a, double* b, double* o, int com){
 	 *  v2a v2b v2c  *  w1b w2b w3b ---> v2w1  v2w2 v2w3
 	 *  v3a v3b v3c     w1c w2c w3c      v3w1  v3w2 v3w3
 	 */
-	o[idx(i,j,w)] = vdot(a + i*com, b+j*com, com) //length of common.
+	o[idx(i,j,w)] = vdot(a + i*com, b+j*com, com); //length of common.
 	// here a = mat of n x com
 	// b = mat of com x m
 	// c = mat of n x m
@@ -62,14 +65,16 @@ __global__ void dot(double* a, double* b, double* o,
 }
 
 
-__global__ void eye(double* d_dat, int w){
+__global__ void _eye(double* d_dat, int w){
 	auto i = threadIdx.x;
 	d_dat[idx(i,i,w)] = 1.0;
 }
 
-__global__ void transpose(double* I, double* O){
+__global__ void _transpose(double* I, double* O){
 	int h = blockDim.y;
 	int w = blockDim.x;
+	int i = threadIdx.y;
+	int j = threadIdx.x;
 	O[idx(j,i,h)] = I[idx(i,j,w)];
 }
 
@@ -100,7 +105,7 @@ Matrix::Matrix(int w, int h, double* d)
 Matrix::Matrix(const Matrix& m){
 	//copy constructor
 	s = m.s;
-	int sz = s.n * s.m * sizeof(double);
+	int sz = s.wh * sizeof(double);
 
 	cudaMalloc(&d_dat, sz);
 	cudaMemcpy(d_dat,m.d_dat,sz,cudaMemcpyDeviceToDevice);
@@ -126,10 +131,9 @@ Matrix::Matrix(Matrix&& o){
 Matrix::~Matrix() {
 	free(dat);
 	cudaFree(d_dat);
-	// TODO Auto-generated destructor stub
 }
 
-Matrix& Matrix::operator=(const Matrix& o){
+Matrix& Matrix::Matrix::operator=(const Matrix& o){
 
 	s = o.s;
 	dat = o.dat;
@@ -139,7 +143,7 @@ Matrix& Matrix::operator=(const Matrix& o){
 	synced = o.synced;
 }
 
-Matrix& Matrix::operator=(Matrix&& o){
+Matrix& Matrix::Matrix::operator=(Matrix&& o){
 	free(dat);
 	cudaFree(d_dat);
 
@@ -154,113 +158,106 @@ Matrix& Matrix::operator=(Matrix&& o){
 	return *this;
 }
 
-Matrix& operator+=(Matrix& o){
+Matrix& Matrix::operator+=(Matrix& o){
 	add(d_dat,o.d_dat,d_dat,s.wh);
 	synced = false;
 	return *this;
 }
-Matrix& operator-=(Matrix& o){
+Matrix& Matrix::operator-=(Matrix& o){
 	sub(d_dat,o.d_dat,d_dat,s.wh);
 	synced = false;
 	return *this;
 }
 
-Matrix& operator/=(Matrix& o){
+Matrix& Matrix::operator/=(Matrix& o){
 	div(d_dat,o.d_dat,d_dat,s.wh);
 	synced = false;
 	return *this;
 }
-Matrix& operator%=(Matrix& o){
+Matrix& Matrix::operator%=(Matrix& o){
 	mul(d_dat,o.d_dat,d_dat,s.wh);
 	synced = false;
 	return *this;
 }
 
-Matrix& operator+=(Matrix&& o){
+Matrix& Matrix::operator+=(Matrix&& o){
 	add(d_dat,o.d_dat,d_dat,s.wh);
 	synced = false;
 	return *this;
 }
-Matrix& operator-=(Matrix&& o){
+Matrix& Matrix::operator-=(Matrix&& o){
 	sub(d_dat,o.d_dat,d_dat,s.wh);
 	synced = false;
 	return *this;
 }
 
 
-Matrix& operator/=(Matrix&& o){
+Matrix& Matrix::operator/=(Matrix&& o){
 	div(d_dat,o.d_dat,d_dat,s.wh);
 	synced = false;
 	return *this;
 }
-Matrix& operator%=(Matrix&& o){
+Matrix& Matrix::operator%=(Matrix&& o){
 	mul(d_dat,o.d_dat,d_dat,s.wh);
 	synced = false;
 	return *this;
 }
 
-Matrix& operator+=(double o){
+Matrix& Matrix::operator+=(double o){
 	add(d_dat,o,d_dat,s.wh);
 	synced = false;
 	return *this;
 }
 
-Matrix& operator-=(double o){
+Matrix& Matrix::operator-=(double o){
 	sub(d_dat,o,d_dat,s.wh);
 	synced = false;
 	return *this;
 }
 
-Matrix& operator*=(double o){
+Matrix& Matrix::operator*=(double o){
 	mul(d_dat,o,d_dat,s.wh);
 	synced = false;
 	return *this;
 }
 
-Matrix& operator/=(double o){
+Matrix& Matrix::operator/=(double o){
 	div(d_dat,o,d_dat,s.wh);
 	synced = false;
 	return *this;
 }
 
 
-Matrix operator+(double o){
+Matrix Matrix::operator+(double o){
 	Matrix m(*this);
 	return m += o;
 }
 
-Matrix operator-(double o){
+Matrix Matrix::operator-(double o){
 	Matrix m(*this);
 	return m -= o;
 }
 
-Matrix operator*(double o){
+Matrix Matrix::operator*(double o){
 	Matrix m(*this);
 	return m *= o;
 }
 
-Matrix operator/(double o){
+Matrix Matrix::operator/(double o){
 	Matrix m(*this);
 	return m /= o;
 }
 
-double operator()(int i, int j){
-	//TODO : check if sync is necessary
+double Matrix::operator()(int i, int j){
 	sync();
 	return dat[idx(i,j,s.w)];
 }
 
 
-
-__global__ void apply(double* I, dfun f){
-	int i = threadIdx.x;
-	I[i] = f(I[i]);
-}
-
 Matrix& Matrix::apply(dfun f){
 	dfun f_d; //must be device function... I think.
 	cudaMemcpyFromSymbol(&f_d,f,sizeof(dfun));
-	apply(d_dat,f_d);
+	_apply<<<1,s.wh>>>(d_dat,f_d);
 	synced = false;
 	//if 'device function' trick doesn't work, copy function to symbol with
 	//cudaMemcpyFromSymbol( &h_f[0], pfunc1, sizeof(func));
@@ -279,7 +276,7 @@ double Matrix::max(){
 	//max of all elem
 }
 
-double min(){
+double Matrix::min(){
 	sync();
 	double res = 99999.0;
 	for(int i=0;i<s.wh;++i){
@@ -289,7 +286,7 @@ double min(){
 	//max of all elem
 }
 
-double sum(){
+double Matrix::sum(){
 	sync();
 	double res=0;
 	for(int i=0;i<s.wh;++i){
@@ -298,7 +295,7 @@ double sum(){
 	return res;
 	//sum of all elem
 }
-double avg(){
+double Matrix::avg(){
 	return sum() / s.wh;
 	//avg of all elem
 }
@@ -317,7 +314,9 @@ void Matrix::one(){
 void Matrix::eye(){
 	zero();
 	int n = s.w<s.h?s.w:s.h; //w-h
-	eye<<<1,n>>>(d_dat,s.w);
+
+	_eye<<<1,n>>>(d_dat,s.w);
+
 	synced = false;
 }
 
@@ -383,34 +382,34 @@ Matrix Matrix::rand(Size s){
 Matrix Matrix::rand(int w, int h){
 	Matrix m(w,h);
 	dim3 blockDims(w,h);
-	rand<<<1,blockDims>>>(m.d_data);
+	_rand<<<1,blockDims>>>(m.d_dat);
 	return m;
 }
 
 Matrix Matrix::transpose(Matrix& I){
 	Matrix O(I.size());
 	dim3 blockDims(I.size().w, I.size().h);
-	transpose<<<1,blockDims>>>(I,O);
+	_transpose<<<1,blockDims>>>(I.d_dat,O.d_dat);
 	return O;
 }
 
 void Matrix::sync(){
 	if(!synced){
-		cudaMemcpy(dat,d_dat,s.n*s.m*sizeof(double),cudaMemcpyDeviceToHost);
+		cudaMemcpy(dat,d_dat,s.wh*sizeof(double),cudaMemcpyDeviceToHost);
 		synced = true;
 	}
 }
 
-Size size(){
+Size Matrix::size(){
 	return s;
 }
 
-double* data(){
+double* Matrix::data(){
 	return dat;
 	//host data (cpu);
 }
 
-double* d_data(){
+double* Matrix::d_data(){
 	return d_dat;
 	//device data (gpu)
 }

@@ -29,7 +29,7 @@ void correlate(Matrix& I, Matrix& K, Matrix& O) {
 	correlate_d(I.d_data(), K.d_data(), O.d_data(), w, h, r);
 }
 
-__device__ void submat_mul(double* a, double* b, double* o,
+/*__device__ void submat_mul(double* a, double* b, double* o,
 		int asrci, int asrcj, int aw,
 		int bsrci, int bsrcj, int bw){
 
@@ -41,35 +41,39 @@ __device__ void submat_mul(double* a, double* b, double* o,
 	auto b_i = idx(bsrci + i, bsrcj + j, bw);
 
 	o[idx(i,j,w)] = a[a_i] * b[b_i];
-}
+}*/
 
-__global__ void deconvolve(double* I, double* _G, double* tmp, double* dW,
-		int isrci, int isrcj, int iw, int ih,
-		int gsrci, int gsrcj, int gw){
+__global__ void deconvolve(double* I, double* _G, double* dW,
+		int iw, int ih){
+	//TODO : current version is likely to be wrong... FIX!!
+
+	//bi,bj spans to Kernel Dims.
+	auto w_i = blockIdx.y;
+	auto w_j = blockIdx.x;
+	auto r = blockDim.x;
+
+	auto w = iw - d_abs(w_j-r); //iw = width of input matrix
+	auto h = ih - d_abs(w_i-r); //ih = height of input matrix
+
+	//here w,h is the [dims of the submatrix].
 
 	auto i = threadIdx.y;
 	auto j = threadIdx.x;
-	auto r = blockDim.x;
 
+	auto iscri = max(0,r-w_i);
+	auto isrcj = max(0,r-w_j);
 
-	auto w = iw - d_abs(j-r);
-	auto h = ih - d_abs(i-r); //assume square mat.
+	//auto gscri = max(0,w_i-r);
+	//auto gscrj = max(0,w_j-r);
+	// if i>=0 && i + (w_i-r) is inbound then ...
+	if (i >= iscri && i < iscri+w
+		&& j >= isrcj && j < isrcj+h){ //i,j are within submatrix range
 
-	dim3 submatDims(w,h,1);
+			auto i_idx = idx(i, j, iw);
+			auto g_idx = idx(i+w_i-r, j+w_j-r, 2*r+1);
 
-	submat_mul<<<1,submatDims>>>(I,_G,tmp,
-			isrci,isrcj,iw,
-			gsrci,gsrcj,gw);
-
-	auto index = idx(blockIdx.y,blockIdx.x,gridDim.x);
-
-	//dW[index] = 0;
-
-	for(int ii=0;ii<h;++ii){
-		for(int jj=0;jj<w;++jj){
-			dW[index] += tmp[idx(ii,jj,w)];
-		}
-	} //this might be faster on cpu, but let's see...
+			dW[idx(w_i,w_j,r)] += I[i_idx] * _G[g_idx];
+	}
 }
 
 
@@ -81,23 +85,9 @@ void deconvolve(Matrix& I, Matrix& _G, Matrix& dW){
 
 	dim3 gridDims(I.size().w,I.size().h,1);
 	dim3 blockDims(s,s,1);
-	//TODO : fix dimensions
 
-	submat_mul<<<1,submatDims>>>(I.d_data(), _G.d_data(), tmp.d_data(),
-			max(0,r-y), max(0,r-x), I.size().w,
-			max(0,x-r), max(0,y-r), _G.size().w);
-
-	// then accumulate result ...
-
-	for(int ii=0;ii<h;++ii){
-			for(int jj=0;jj<w;++jj){
-				dW[index] += tmp[idx(ii,jj,w)];
-			}
-		}
-
-	deconvolve<<<gridDims, blockDims>>>(I.d_data(), _G.d_data(), tmp.d_data(), dW.d_data(),
-			 I.size().h,//I-begin index
-			); //G-begin index
+	deconvolve<<<gridDims, blockDims>>>(I.d_data(), _G.d_data(), dW.d_data(),
+			 I.size().h, I.size().w); //G-begin index
 
 }
 
@@ -208,7 +198,7 @@ std::vector<Matrix>& ConvolutionLayer::BP(std::vector<Matrix>& _G) {
 				- (W[o] * DECAY);
 
 		dB[o] = (dB_p[o] * MOMENTUM)
-				+ (G[o] * ETA); //bias = gradient
+				+ (G[o] * ETA) //bias = gradient
 				- (B[o] * DECAY);
 
 		dW_p[o] = dW[o];

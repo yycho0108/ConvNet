@@ -8,9 +8,7 @@ __global__ void pool(double* I, double* O, int* SW, //Switch
 		int s_w, int s_h,  //stride dims
 		int p_w, int p_h){ //pool dims
 
-	//it's max pooling.
-	//is it in terms of magnitude?? or simply positive-max?
-	//TODO: Research
+	//TODO: is 'max' pooling in terms of magnitude? or positive-max only?
 
 	int h = blockDim.y;
 	int w = blockDim.x;
@@ -23,7 +21,7 @@ __global__ void pool(double* I, double* O, int* SW, //Switch
 	for(int ii=0;ii<p_h;++ii){
 		for(int jj=0;jj<p_w;++jj){
 			int index = idx(i,j,w);
-			double index_i = idx(s_h*i+ii,s_w*j+jj,iw);
+			int index_i = idx(s_h*i+ii,s_w*j+jj,iw);
 			double val = I[index_i];
 			if(val > O[index]){
 				SW[index] = index_i; //switches, though stored in flattened index
@@ -37,8 +35,6 @@ __global__ void invert_pool(double* G_o, double* G_i, int* SW){
 
 	int i = threadIdx.x;
 	G_i[SW[i]] = G_o[i];
-
-	//TODO : implement
 }
 
 PoolLayer::PoolLayer(Size s_s, Size s_p):s_s(s_s),s_p(s_p){
@@ -47,7 +43,7 @@ PoolLayer::PoolLayer(Size s_s, Size s_p):s_s(s_s),s_p(s_p){
 
 PoolLayer::~PoolLayer(){
 	for(int i=0;i<d;++i){
-		cudaFree(SW);
+		cudaFree(SW[i]);
 	}
 }
 
@@ -85,7 +81,7 @@ std::vector<Matrix>& PoolLayer::FF(std::vector<Matrix>& _I){
 std::vector<Matrix>& PoolLayer::BP(std::vector<Matrix>& _G){
 	for(int i=0;i<d;++i){
 		G[i].zero();
-		invert_pool<<<1,s.wh>>>(_G[i],G[i],SW[i]);
+		invert_pool<<<1,s_out.wh>>>(_G[i].d_data(),G[i].d_data(),SW[i]);
 	}
 	return G;
 }

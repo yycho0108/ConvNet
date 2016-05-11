@@ -1,28 +1,36 @@
 #include "Utility.h"
 
 __global__ void _add(double* a, double* b, double* out){
+	int i = threadIdx.x;
 	out[i] = a[i]+b[i];
 }
 __global__ void _sub(double* a, double* b, double* out){
+	int i = threadIdx.x;
 	out[i] = a[i]-b[i];
 }
 __global__ void _mul(double* a, double* b, double* out){
+	int i = threadIdx.x;
 	out[i] = a[i]*b[i];
 }
 __global__ void _div(double* a, double* b, double* out){
+	int i = threadIdx.x;
 	out[i] = a[i]/b[i];
 }
 
 __global__ void _add(double* a, double b, double* out){
+	int i = threadIdx.x;
 	out[i] = a[i]+b;
 }
 __global__ void _sub(double* a, double b, double* out){
+	int i = threadIdx.x;
 	out[i] = a[i]-b;
 }
 __global__ void _mul(double* a, double b, double* out){
+	int i = threadIdx.x;
 	out[i] = a[i]*b;
 }
 __global__ void _div(double* a, double b, double* out){
+	int i = threadIdx.x;
 	out[i] = a[i]/b;
 }
 
@@ -75,7 +83,7 @@ __global__ void _convolve(double* d_i, double* d_k, double* d_o,int r){
 			//d_o[i][j] += d_i[i+ki][j+kj] * d_k[ki+r][kj+r]
 		}
 	}
-	//TODO : IMPLEMENT
+
 }
 __global__ void _correlate(double* d_i, double* d_k, double* d_o,int r){
 	//assuming kernel size 3x3

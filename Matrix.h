@@ -10,6 +10,8 @@
 
 #include "Size.h"
 #include "Utility.h"
+#include "RandManager.h"
+
 #include <functional>
 
 
@@ -19,6 +21,7 @@ private:
 	double* d_dat = nullptr; //gpu
 	double* dat = nullptr; //cpu
 	bool synced;
+	static RandManager rnd;
 public:
 	Matrix(); //no setup at all
 	Matrix(Size s, double* dat=nullptr);
@@ -75,17 +78,17 @@ public:
 	void zero(); //set to zero
 	void one(); //set to zero
 	void eye(); //set to identity
-
+	void rand(); //set to rand
 
 	void copyTo(Matrix& m); //copy to data, check for nullptr
 	void transpose();
 
-	static Matrix eye(int w, int h);
-	static Matrix eye(Size s);
 	static Matrix zeros(int w, int h);
 	static Matrix zeros(Size s);
 	static Matrix ones(int w, int h);
 	static Matrix ones(Size s);
+	static Matrix eye(int w, int h);
+	static Matrix eye(Size s);
 	static Matrix rand(int w, int h);
 	static Matrix rand(Size s);
 

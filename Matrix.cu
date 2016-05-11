@@ -6,18 +6,15 @@
  */
 
 #include "Matrix.h"
+#include "curand.h"
+#include "curand_kernel.h"
+
 #include <random>
 
 using dfun = double (*)(double);
 
-__global__ void _rand(double* a){
-	auto w = blockDim.x;
-	auto i = threadIdx.y;
-	auto j = threadIdx.x;
-	//TODO : find proper random-number-generation
-	a[idx(i,j,w)] = 0.1;
+RandManager Matrix::rnd = RandManager(1000); //or some big value
 
-}
 __device__ double vdot(double* a, double* b, int n){ //dot product of two vectors.
 	double res = 0;
 	for(int i=0;i<n;++i){
@@ -139,8 +136,8 @@ Matrix& Matrix::Matrix::operator=(const Matrix& o){
 	dat = o.dat;
 	d_dat = o.d_dat;
 
-
 	synced = o.synced;
+	return *this;
 }
 
 Matrix& Matrix::Matrix::operator=(Matrix&& o){
@@ -319,7 +316,10 @@ void Matrix::eye(){
 
 	synced = false;
 }
-
+void Matrix::rand(){
+	rnd.rand(d_dat,s.wh);
+	synced = false;
+}
 void Matrix::copyTo(Matrix& m){
 	auto sz = s.wh*sizeof(double);
 
@@ -381,8 +381,7 @@ Matrix Matrix::rand(Size s){
 
 Matrix Matrix::rand(int w, int h){
 	Matrix m(w,h);
-	dim3 blockDims(w,h);
-	_rand<<<1,blockDims>>>(m.d_dat);
+	m.rand();
 	return m;
 }
 

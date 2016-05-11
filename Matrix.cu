@@ -13,7 +13,7 @@
 
 using dfun = double (*)(double);
 
-RandManager Matrix::rnd = RandManager(1000); //or some big value
+RandManager Matrix::rnd = RandManager(1024); //or some smaller value? welp.
 
 __device__ double vdot(double* a, double* b, int n){ //dot product of two vectors.
 	double res = 0;
@@ -224,24 +224,74 @@ Matrix& Matrix::operator/=(double o){
 	return *this;
 }
 
+Matrix Matrix::operator+(Matrix& o){
+	Matrix m;
+	copyTo(m);
+	return m += o;
+}
+Matrix Matrix::operator-(Matrix& o){
+	Matrix m;
+	copyTo(m);
+	return m -= o;
+}
+Matrix Matrix::operator*(Matrix& o){
+	return dot(*this,o);
+}
+Matrix Matrix::operator/(Matrix& o){
+	Matrix m;
+	copyTo(m);
+	return m /= o;
+}
+Matrix Matrix::operator%(Matrix& o){
+	Matrix m;
+	copyTo(m);
+	return m %= o;
+}
+Matrix Matrix::operator+(Matrix&& o){
+	Matrix m;
+	copyTo(m);
+	return m += o;
+}
+Matrix Matrix::operator-(Matrix&& o){
+	Matrix m;
+	copyTo(m);
+	return m -= o;
+}
+Matrix Matrix::operator*(Matrix&& o){
+	return dot(*this,o);
+}
+Matrix Matrix::operator/(Matrix&& o){
+	Matrix m;
+	copyTo(m);
+	return m /= o;
+}
+Matrix Matrix::operator%(Matrix&& o){
+	Matrix m;
+	copyTo(m);
+	return m %= o;
+}
 
 Matrix Matrix::operator+(double o){
-	Matrix m(*this);
+	Matrix m;
+	copyTo(m);
 	return m += o;
 }
 
 Matrix Matrix::operator-(double o){
-	Matrix m(*this);
+	Matrix m;
+	copyTo(m);
 	return m -= o;
 }
 
 Matrix Matrix::operator*(double o){
-	Matrix m(*this);
+	Matrix m;
+	copyTo(m);
 	return m *= o;
 }
 
 Matrix Matrix::operator/(double o){
-	Matrix m(*this);
+	Matrix m;
+	copyTo(m);
 	return m /= o;
 }
 
@@ -386,6 +436,7 @@ Matrix Matrix::rand(int w, int h){
 }
 
 Matrix Matrix::transpose(Matrix& I){
+	//TODO : Improve transposition logic
 	Matrix O(I.size());
 	dim3 blockDims(I.size().w, I.size().h);
 	_transpose<<<1,blockDims>>>(I.d_dat,O.d_dat);

@@ -38,3 +38,7 @@ std::vector<Matrix>& SoftMaxLayer::BP(std::vector<Matrix>& _G){
 	G.swap(_G);
 	return G;
 }
+
+void SoftMaxLayer::update(){
+
+}

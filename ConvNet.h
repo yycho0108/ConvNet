@@ -13,10 +13,14 @@
 #include <vector>
 
 class ConvNet{
+
+private:
+	std::vector<Layer*> L; //layers. set as ptr, to avoid copying-syntax when pushing
+
+public:
 	ConvNet();
 	~ConvNet();
 
-	std::vector<Layer*> L; //layers. set as ptr, to avoid copying-syntax when pushing
 	std::vector<Matrix>& FF(std::vector<Matrix>& _X);
 	void BP(std::vector<Matrix>& O, std::vector<Matrix>& T);
 

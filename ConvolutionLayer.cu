@@ -115,6 +115,8 @@ void ConvolutionLayer::setup(Size& _s, int& _d) {
 	}
 
 	for (int o = 0; o < d_out; ++o) {
+		O.push_back(Matrix(s)); //same size
+
 		W.push_back(Matrix::rand(5, 5)); //5,5 = kernel size
 		//Bias depends on output matrix size,
 		//Which is equivalent to the input matrix size (in case of this convolution)
@@ -126,6 +128,8 @@ void ConvolutionLayer::setup(Size& _s, int& _d) {
 		dB.push_back(Matrix::zeros(s));
 		dB_p.push_back(Matrix::zeros(s)); //previous dB
 	}
+
+	connection = new bool*[d_out];
 
 	for (int o = 0; o < d_out; ++o) {
 		connection[o] = new bool[d_in];

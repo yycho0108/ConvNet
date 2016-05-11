@@ -4,6 +4,7 @@
 #include "Layer.h"
 
 class PoolLayer : public Layer{
+private:
 	Size s_in, s_out;
 	Size s_s,s_p; //pooling size, stride size
 

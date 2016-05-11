@@ -12,6 +12,7 @@
 #include <curand_kernel.h>
 
 class RandManager {
+private:
 	int N;
 	curandState* s;
 public:

@@ -45,6 +45,7 @@ PoolLayer::~PoolLayer(){
 	for(int i=0;i<d;++i){
 		cudaFree(SW[i]);
 	}
+
 }
 
 void PoolLayer::setup(Size& s, int& d){
@@ -54,6 +55,8 @@ void PoolLayer::setup(Size& s, int& d){
 	int w = (s_in.w-s_p.w+s_s.w-1)/s_s.w;
 	int h = (s_in.h-s_p.h+s_s.h-1)/s_s.h;
 	s_out = Size(w,h);
+
+	SW.resize(d);
 	for(int i=0;i<d;++i){
 		cudaMalloc(&SW[i],sizeof(int) * w*h);
 	}

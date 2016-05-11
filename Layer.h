@@ -17,7 +17,8 @@
 class Layer {
 public:
 	//Layer(); no need for constructor
-	virtual ~Layer();
+	virtual ~Layer(){};
+
 	virtual void setup(Size&,int&)=0;//int for "depth" of previous.
 
 	virtual std::vector<Matrix>& FF(std::vector<Matrix>&)=0;

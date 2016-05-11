@@ -9,8 +9,9 @@
 #define __SIZE_H__
 
 struct Size {
-	int w,h,wh;
+
 public:
+	int w,h,wh;
 	Size(int w=0, int h=0);
 	Size(const Size& s);
 

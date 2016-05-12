@@ -47,7 +47,7 @@ __global__ void deconvolve(double* I, double* _G, double* dW,
 		int iw, int ih){
 	//TODO : current version is likely to be wrong... FIX!!
 
-	//bi,bj spans to Kernel Dims.
+	//w_i,w_j spans to Kernel Dims.
 	auto w_i = blockIdx.y;
 	auto w_j = blockIdx.x;
 	auto r = blockDim.x;
@@ -66,11 +66,13 @@ __global__ void deconvolve(double* I, double* _G, double* dW,
 	//auto gscri = max(0,w_i-r);
 	//auto gscrj = max(0,w_j-r);
 	// if i>=0 && i + (w_i-r) is inbound then ...
-	if (i >= iscri && i < iscri+w
-		&& j >= isrcj && j < isrcj+h){ //i,j are within submatrix range
+	if (isrci <= i && i < iscri+w
+		&& isrcj <= j && j < isrcj+h){ //i,j are within submatrix range
 
 			auto i_idx = idx(i, j, iw);
-			auto g_idx = idx(i+w_i-r, j+w_j-r, 2*r+1);
+			auto g_idx = idx(i+w_i-r, j+w_j-r, iw);
+			//gradient width is same as I because
+			//in the current mode of convolution, the two are the same.
 
 			dW[idx(w_i,w_j,r)] += I[i_idx] * _G[g_idx];
 	}
@@ -83,8 +85,8 @@ void deconvolve(Matrix& I, Matrix& _G, Matrix& dW){
 	auto s = dW.size().w;
 	auto r = dW.size().w / 2; //assume square kernel, odd-size
 
-	dim3 gridDims(I.size().w,I.size().h,1);
-	dim3 blockDims(s,s,1);
+	dim3 gridDims(I.size().w,I.size().h,1); //--> executed throughout I
+	dim3 blockDims(s,s,1); //--> executed for each pt in kernel
 
 	deconvolve<<<gridDims, blockDims>>>(I.d_data(), _G.d_data(), dW.d_data(),
 			 I.size().h, I.size().w); //G-begin index
@@ -155,6 +157,7 @@ std::vector<Matrix>& ConvolutionLayer::FF(std::vector<Matrix>& _I) {
 		O[o].zero(); //set to zero
 		for (int i = 0; i < d_in; ++i) {
 			if (connection[o][i]) {
+				//TODO : this seems like it can be parallelized, like ""per each output layer...""
 				convolve(I[i], W[o], tmp);
 				O[o] += tmp;
 			}
@@ -180,17 +183,17 @@ std::vector<Matrix>& ConvolutionLayer::BP(std::vector<Matrix>& _G) {
 		G[i].zero(); //reset to 0
 	}
 
-	Matrix tmp(G[0].size()); //TODO : make this static?
-	Matrix ddW(dW[0].size());
+	Matrix dG(G[0].size()); //TODO : make this static?
+	Matrix ddW(dW[0].size()); //there are acculumants.
 
 	for (int o = 0; o < d_out; ++o) { //for each output channel(depth):
 		dW[o].zero();
 
-		correlate(_G[o],W[o],tmp);//TODO:check correlation works
+		correlate(_G[o],W[o],dG);//TODO:check correlation works
 
 		for (int i = 0; i < d_in; ++i) { //for each input channel
 			if (connection[o][i]) { //if the channels are related..
-				G[i] += tmp;
+				G[i] += dG;
 				deconvolve(I[i],_G[o],dW[o]);
 			}
 		}

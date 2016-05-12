@@ -62,7 +62,6 @@ void div(double* a, double b, double* o, int n){
 }
 
 __global__ void _convolve(double* d_i, double* d_k, double* d_o,int r){
-	//assuming kernel size 3x3
 	int i = threadIdx.y;
 	int j = threadIdx.x;
 

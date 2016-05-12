@@ -16,7 +16,6 @@ bool Parser::read(Matrix& d, Matrix& l){
 	f_d.read((char*)buf_d_raw,28*28);
 	f_l.read((char*)buf_l_raw,1);
 
-	//TODO : VERIFY MATRIX READ
 	//get img to Matrix
 	for(int i=0;i<28;++i){
 		for(int j=0;j<28;++j){

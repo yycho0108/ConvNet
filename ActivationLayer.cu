@@ -63,66 +63,26 @@ ActivationLayer::ActivationLayer(std::string _f) {
 		c = std::tolower(c);
 	}
 
-	//cudaMalloc(&f,sizeof(dfun));
-	//cudaMalloc(&f_d,sizeof(dfun));
-
 	if (_f == "sigmoid") {
 		cudaMemcpyFromSymbol(&f, pf_sig, sizeof(dfun),0,cudaMemcpyDeviceToHost);
 		cudaMemcpyFromSymbol(&f_d, pf_sig_d, sizeof(dfun),0,cudaMemcpyDeviceToHost);
-		//pf = sigmoid;
-		//pf_d = sigmoidPrime;
-		//cudaMemcpyFromSymbol(&h_f, sigmoid, sizeof(dfun));
-		//cudaMemcpyFromSymbol(&h_f_d, sigmoidPrime, sizeof(dfun));
-		//f = sigmoid;
-		//f_d = sigmoidPrime;
 	} else if (_f == "softplus") {
 		cudaMemcpyFromSymbol(&f, pf_sp, sizeof(dfun),0,cudaMemcpyDeviceToHost);
 		cudaMemcpyFromSymbol(&f_d, pf_sp_d, sizeof(dfun),0,cudaMemcpyDeviceToHost);
-
-		//pf = softplus;
-		//pf_d = softplusPrime;
-		//cudaMemcpyFromSymbol(&h_f, softplus, sizeof(dfun));
-		//cudaMemcpyFromSymbol(&h_f_d, softplusPrime, sizeof(dfun));
-
-		//f = softplus;
-		//f_d = softplusPrime;
 	} else if (_f == "relu") {
 		cudaMemcpyFromSymbol(&f, pf_relu, sizeof(dfun),0,cudaMemcpyDeviceToHost);
 		cudaMemcpyFromSymbol(&f_d, pf_relu_d, sizeof(dfun),0,cudaMemcpyDeviceToHost);
-
-		//pf = ReLU;
-		//pf_d = ReLUPrime;
-		//cudaMemcpyFromSymbol(&h_f, ReLU, sizeof(dfun));
-		//cudaMemcpyFromSymbol(&h_f_d, ReLUPrime, sizeof(dfun));
-		//f = ReLU;
-		//f_d = ReLUPrime;
 	} else if (_f == "tanh") {
 		cudaMemcpyFromSymbol(&f, pf_tanh, sizeof(dfun),0,cudaMemcpyDeviceToHost);
 		cudaMemcpyFromSymbol(&f_d, pf_tanh_d, sizeof(dfun),0,cudaMemcpyDeviceToHost);
-
-		//pf = mytanh;
-		//pf_d = tanhPrime;
-		//cudaMemcpyFromSymbol(&h_f, mytanh, sizeof(dfun));
-		//cudaMemcpyFromSymbol(&h_f_d, tanhPrime, sizeof(dfun));
-		//f = mytanh;
-		//f_d = tanhPrime;
 	} else {
 		throw "WRONG ACTIVATION FUNCTION!!";
 	}
-	//dfun h_f; // = (dfun*)malloc(sizeof(dfun));
-	//dfun h_f_d;// = (dfun*)malloc(sizeof(dfun));
-	//cudaMemcpyFromSymbol(&f, pf, sizeof(dfun),0,cudaMemcpyDeviceToHost);
-	//cudaMemcpyFromSymbol(&f_d, pf_d, sizeof(dfun),0,cudaMemcpyDeviceToHost);
-
-	//cudaMemcpy(f,&h_f,sizeof(dfun),cudaMemcpyHostToDevice);
-	//cudaMemcpy(f_d,&h_f_d,sizeof(dfun),cudaMemcpyHostToDevice);
 
 }
 
 ActivationLayer::~ActivationLayer(){
-	//TODO : find out if freeing is necessary (there's probably reference)
-	//cudaFree(f);
-	//cudaFree(f_d);
+
 }
 
 void ActivationLayer::setup(Size& _s, int& _d) {

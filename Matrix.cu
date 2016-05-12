@@ -319,21 +319,36 @@ Matrix& Matrix::apply(dfun f){
 }
 
 
-double Matrix::max(){
+double Matrix::max(Size* idx){
 	sync();
 	double res = -99999.0;
 	for(int i=0;i<s.wh;++i){
-		res = dat[i]>res?dat[i]:res;
+		if(dat[i] > res){
+			res = dat[i];
+
+			if(idx){
+				idx->h = i / idx->w;
+				idx->w = i % idx->w;
+			}
+
+		}
 	}
 	return res;
 	//max of all elem
 }
 
-double Matrix::min(){
+double Matrix::min(Size* idx){
 	sync();
 	double res = 99999.0;
 	for(int i=0;i<s.wh;++i){
-		res = dat[i]<res?dat[i]:res;
+		if(dat[i] < res){
+			res = dat[i];
+
+			if(idx){
+				idx->h = i / idx->w;
+				idx->w = i % idx->w;
+			}
+		}
 	}
 	return res;
 	//max of all elem
@@ -352,7 +367,6 @@ double Matrix::avg(){
 	return sum() / s.wh;
 	//avg of all elem
 }
-
 
 void Matrix::zero(){
 	auto sz = s.wh*sizeof(double);

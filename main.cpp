@@ -92,11 +92,15 @@ void test(ConvNet& net){
 	int inc = 0;
 
 	while(tester.read(X[0],Y[0]) && keepTesting){ //read into X,Y
-		auto y = net.FF(X)[0].max();
-		auto t = Y[0].max();
+		Size y;
+		Size t;
+
+		net.FF(X)[0].max(&y);
+		Y[0].max(&y);
 
 		y==t?(++cor):(++inc);
-		cout << "y[" << y << "]:T[" << t <<"]"<<endl;
+		cout << "y[" << y.h << "]:T[" << t.h <<"]"<<endl;
+
 		printf("%d cor, %d inc\n", cor,inc);
 	}
 

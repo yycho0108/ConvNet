@@ -8,7 +8,6 @@
 #ifndef UTILITY_H_
 #define UTILITY_H_
 
-
 #define idx(i,j,w) ((i)*(w)+(j))
 #define inbound(i,j,n,m) (0<=(i) && 0<=(j) && (i)<(n) && (j)<(m))
 #define LOOP(start,end,content) \

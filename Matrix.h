@@ -71,8 +71,8 @@ public:
 
 	Matrix& apply(double f(double)); //for each elem
 
-	double max(); //max of all elem
-	double min(); //min of all elem
+	double max(Size* idx=nullptr); //max of all elem
+	double min(Size* idx=nullptr); //min of all elem
 	double sum(); //sum of all elem
 	double avg(); //avg of all elem
 

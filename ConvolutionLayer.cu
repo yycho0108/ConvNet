@@ -7,8 +7,8 @@
 
 #include "ConvolutionLayer.h"
 
-__device__ int d_abs(int x){
-	return x>0?x:-x;
+__device__ int d_abs(int x) {
+	return x > 0 ? x : -x;
 }
 
 void convolve(Matrix& I, Matrix& K, Matrix& O) {
@@ -30,21 +30,20 @@ void correlate(Matrix& I, Matrix& K, Matrix& O) {
 }
 
 /*__device__ void submat_mul(double* a, double* b, double* o,
-		int asrci, int asrcj, int aw,
-		int bsrci, int bsrcj, int bw){
+ int asrci, int asrcj, int aw,
+ int bsrci, int bsrcj, int bw){
 
-	auto i = threadIdx.y;
-	auto j = threadIdx.x;
-	auto w = blockDim.x;
+ auto i = threadIdx.y;
+ auto j = threadIdx.x;
+ auto w = blockDim.x;
 
-	auto a_i = idx(asrci + i, asrcj + j, aw);
-	auto b_i = idx(bsrci + i, bsrcj + j, bw);
+ auto a_i = idx(asrci + i, asrcj + j, aw);
+ auto b_i = idx(bsrci + i, bsrcj + j, bw);
 
-	o[idx(i,j,w)] = a[a_i] * b[b_i];
-}*/
+ o[idx(i,j,w)] = a[a_i] * b[b_i];
+ }*/
 
-__global__ void deconvolve(double* I, double* _G, double* dW,
-		int iw, int ih){
+__global__ void deconvolve(double* I, double* _G, double* dW, int iw, int ih) {
 	//TODO : current version is likely to be wrong... FIX!!
 
 	//w_i,w_j spans to Kernel Dims.
@@ -52,44 +51,43 @@ __global__ void deconvolve(double* I, double* _G, double* dW,
 	auto w_j = blockIdx.x;
 	auto r = blockDim.x;
 
-	auto w = iw - d_abs(w_j-r); //iw = width of input matrix
-	auto h = ih - d_abs(w_i-r); //ih = height of input matrix
+	auto w = iw - d_abs(w_j - r); //iw = width of input matrix
+	auto h = ih - d_abs(w_i - r); //ih = height of input matrix
 
 	//here w,h is the [dims of the submatrix].
 
 	auto i = threadIdx.y;
 	auto j = threadIdx.x;
 
-	auto iscri = max(0,r-w_i);
-	auto isrcj = max(0,r-w_j);
+	auto iscri = max(0, r - w_i);
+	auto isrcj = max(0, r - w_j);
 
 	//auto gscri = max(0,w_i-r);
 	//auto gscrj = max(0,w_j-r);
 	// if i>=0 && i + (w_i-r) is inbound then ...
-	if (isrci <= i && i < iscri+w
-		&& isrcj <= j && j < isrcj+h){ //i,j are within submatrix range
+	if (iscri <= i && i < iscri + w
+			&& isrcj <= j && j < isrcj + h) { //i,j are within submatrix range
 
-			auto i_idx = idx(i, j, iw);
-			auto g_idx = idx(i+w_i-r, j+w_j-r, iw);
-			//gradient width is same as I because
-			//in the current mode of convolution, the two are the same.
+		auto i_idx = idx(i, j, iw);
+		auto g_idx = idx(i + w_i - r, j + w_j - r, iw);
+		//gradient width is same as I because
+		//in the current mode of convolution, the two are the same.
 
-			dW[idx(w_i,w_j,r)] += I[i_idx] * _G[g_idx];
+		dW[idx(w_i, w_j, r)] += I[i_idx] * _G[g_idx];
 	}
 }
 
-
-void deconvolve(Matrix& I, Matrix& _G, Matrix& dW){
+void deconvolve(Matrix& I, Matrix& _G, Matrix& dW) {
 	Matrix tmp(I.size()); //make this static, somehow?
 
 	auto s = dW.size().w;
 	auto r = dW.size().w / 2; //assume square kernel, odd-size
 
-	dim3 gridDims(I.size().w,I.size().h,1); //--> executed throughout I
-	dim3 blockDims(s,s,1); //--> executed for each pt in kernel
+	dim3 gridDims(I.size().w, I.size().h, 1); //--> executed throughout I
+	dim3 blockDims(s, s, 1); //--> executed for each pt in kernel
 
 	deconvolve<<<gridDims, blockDims>>>(I.d_data(), _G.d_data(), dW.d_data(),
-			 I.size().h, I.size().w); //G-begin index
+			I.size().h, I.size().w); //G-begin index
 
 }
 
@@ -100,7 +98,7 @@ ConvolutionLayer::ConvolutionLayer(int d_out) :
 }
 
 ConvolutionLayer::~ConvolutionLayer() {
-	for(int i=0;i<d_in;++i){
+	for (int i = 0; i < d_in; ++i) {
 		delete connection[i];
 	}
 	delete[] connection;
@@ -168,7 +166,6 @@ std::vector<Matrix>& ConvolutionLayer::FF(std::vector<Matrix>& _I) {
 	return O;
 }
 
-
 std::vector<Matrix>& ConvolutionLayer::BP(std::vector<Matrix>& _G) {
 	auto iw = s.w;
 	auto ih = s.h;
@@ -189,22 +186,20 @@ std::vector<Matrix>& ConvolutionLayer::BP(std::vector<Matrix>& _G) {
 	for (int o = 0; o < d_out; ++o) { //for each output channel(depth):
 		dW[o].zero();
 
-		correlate(_G[o],W[o],dG);//TODO:check correlation works
+		correlate(_G[o], W[o], dG); //TODO:check correlation works
 
 		for (int i = 0; i < d_in; ++i) { //for each input channel
 			if (connection[o][i]) { //if the channels are related..
 				G[i] += dG;
-				deconvolve(I[i],_G[o],dW[o]);
+				deconvolve(I[i], _G[o], dW[o]);
 			}
 		}
 
-		dW[o] = (dW_p[o] * MOMENTUM)
-				+ (dW[o] * ETA) //no "gain" implemented yet
-				- (W[o] * DECAY);
+		dW[o] = (dW_p[o] * MOMENTUM) + (dW[o] * ETA) //no "gain" implemented yet
+		- (W[o] * DECAY);
 
-		dB[o] = (dB_p[o] * MOMENTUM)
-				+ (G[o] * ETA) //bias = gradient
-				- (B[o] * DECAY);
+		dB[o] = (dB_p[o] * MOMENTUM) + (G[o] * ETA) //bias = gradient
+		- (B[o] * DECAY);
 
 		dW[o].copyTo(dW_p[o]);
 		dB[o].copyTo(dB_p[o]);
@@ -215,8 +210,8 @@ std::vector<Matrix>& ConvolutionLayer::BP(std::vector<Matrix>& _G) {
 	return G;
 }
 
-void ConvolutionLayer::update(){
-	for(int o=0;o<d_out;++o){
+void ConvolutionLayer::update() {
+	for (int o = 0; o < d_out; ++o) {
 		W[o] += dW[o];
 		B[o] += dB[o];
 	}

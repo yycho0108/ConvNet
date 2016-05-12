@@ -21,16 +21,17 @@ std::vector<Matrix>& ConvNet::FF(std::vector<Matrix>& _I){
 }
 
 void ConvNet::BP(std::vector<Matrix>& O, std::vector<Matrix>& T){
-	std::vector<Matrix> G;
+	std::vector<Matrix> _G;
 	//setup output gradient
 	for(size_t i=0;i<O.size();++i){
-		G.push_back(T[i]-O[i]);
+		_G.push_back(T[i]-O[i]);
 		//G[i] = Y[i] - Yp[i];
 	}
 
+	auto G = &_G;
 	for(auto i = L.rbegin()+1; i != L.rend(); ++i){
 		auto& l = (*i);
-		G = l->BP(G);
+		G = &l->BP(*G);
 	}
 
 	for(auto& l : L){

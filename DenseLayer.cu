@@ -52,8 +52,11 @@ std::vector<Matrix>& DenseLayer::BP(std::vector<Matrix>& _G) {
 		+ (_G[0] * ETA)
 		- (B * DECAY);
 
-	dW_p = dW;
-	dB_p = dB;
+	dW.copyTo(dW_p);
+	dB.copyTo(dB_p);
+
+	//dW_p = dW;
+	//dB_p = dB;
 
 	return G;
 }

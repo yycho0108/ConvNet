@@ -203,8 +203,11 @@ std::vector<Matrix>& ConvolutionLayer::BP(std::vector<Matrix>& _G) {
 				+ (G[o] * ETA) //bias = gradient
 				- (B[o] * DECAY);
 
-		dW_p[o] = dW[o];
-		dB_p[o] = dB[o];
+		dW[o].copyTo(dW_p[o]);
+		dB[o].copyTo(dB_p[o]);
+
+		//dW_p[o] = dW[o];
+		//dB_p[o] = dB[o];
 	}
 	return G;
 }

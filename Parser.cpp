@@ -3,6 +3,10 @@
 Parser::Parser(string d, string l){
 	f_d.open(d);
 	f_l.open(l);
+
+	if(f_d.fail() || f_l.fail()){
+		std::cerr << "ERROR : failed to open [" << d << ',' << l << "]:" << strerror(errno) << std::endl;
+	}
 	reset();
 }
 
@@ -12,10 +16,12 @@ bool Parser::read(Matrix& d, Matrix& l){
 	f_d.read((char*)buf_d_raw,28*28);
 	f_l.read((char*)buf_l_raw,1);
 
+	//TODO : VERIFY MATRIX READ
 	//get img to Matrix
 	for(int i=0;i<28;++i){
 		for(int j=0;j<28;++j){
-			buf_d[i*28 + j] = buf_d_raw[i*28+j];
+			auto index = idx(i,j,28);
+			buf_d[index] = buf_d_raw[index] / 256.0; //normalize
 		}
 	}
 

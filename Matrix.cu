@@ -9,9 +9,12 @@
 #include "curand.h"
 #include "curand_kernel.h"
 
+std::ostream& operator<<(std::ostream& os, Matrix& m){
+	m.print(os);
+	return os;
+}
 
-using dfun = double (*)(double);
-
+typedef double (*dfun)(double);
 RandManager Matrix::rnd = RandManager(1024); //or some smaller value? welp.
 
 __device__ double vdot(double* a, double* b, int n){ //dot product of two vectors.
@@ -50,17 +53,19 @@ Matrix dot(Matrix& a, Matrix& b){
 	Matrix bT = Matrix::transpose(b);
 	Matrix o(b.size().w, a.size().h);
 
-	dotT<<<b.size().w, a.size().h>>>(a.d_data(),b.d_data(),o.d_data(),com);
+	dim3 blockDims(b.size().w, a.size().h);
+	dotT<<<1,blockDims>>>(a.d_data(),bT.d_data(),o.d_data(),com);
+
 	return o;
 }
 
-__global__ void dot(double* a, double* b, double* o,
+/*__global__ void dot(double* a, double* b, double* o,
 		int aw, int bw){
 	auto i = threadIdx.y;
 	auto j = threadIdx.x;
 
 }
-
+*/
 
 __global__ void _eye(double* d_dat, int w){
 	auto i = threadIdx.x;
@@ -131,7 +136,8 @@ Matrix::~Matrix() {
 }
 
 Matrix& Matrix::Matrix::operator=(const Matrix& o){
-
+	throw "Don't Come HERE!!";
+	/* problematic for memory management*/
 	s = o.s;
 	dat = o.dat;
 	d_dat = o.d_dat;

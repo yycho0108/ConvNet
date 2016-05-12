@@ -105,4 +105,6 @@ public:
 	double* d_data(); //device data (gpu)
 };
 
+std::ostream& operator<<(std::ostream& os, Matrix& m);
+
 #endif /* MATRIX_H_ */

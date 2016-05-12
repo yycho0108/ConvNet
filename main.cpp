@@ -53,7 +53,7 @@ void train(ConvNet& net, int lim){
 	std::cout << "TRAINING FOR : " << lim << std::endl;
 	keepTraining = true;
 
-	Parser trainer("../data/trainData","../data/trainLabel");
+	Parser trainer("data/trainData","data/trainLabel");
 	std::vector<Matrix> X(1),Y(1);
 
 	int i = 0;
@@ -63,7 +63,7 @@ void train(ConvNet& net, int lim){
 			trainer.reset();
 		}
 
-		X[0].print(std::cout);
+		//X[0].print(std::cout);
 
 		if(++i > lim || !keepTraining)
 			return;
@@ -104,6 +104,13 @@ void test(ConvNet& net){
 }
 
 int main(int argc, char* argv[]){
+
+	/*
+	std::ofstream f_check("check.txt"); //checking working directory
+	f_check << "CHECK " << std::endl;
+	f_check.flush();
+	f_check.close();
+	*/
 	int lim = 60000;
 
 	if(argc > 1){

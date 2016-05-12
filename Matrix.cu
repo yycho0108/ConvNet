@@ -388,6 +388,8 @@ void Matrix::eye(){
 }
 void Matrix::rand(){
 	rnd.rand(d_dat,s.wh);
+	*this -= 0.5;
+
 	synced = false;
 }
 void Matrix::copyTo(Matrix& m){

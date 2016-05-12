@@ -18,6 +18,9 @@ public:
 	RandManager();
 	~RandManager();
 	void rand(double* a, int n);
+	void randu(double* a, int n);
+	void randn(double* a, int n, double mean, double stddev);
+
 };
 
 

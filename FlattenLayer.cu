@@ -26,13 +26,9 @@ void FlattenLayer::setup(Size& s, int& d) {
 std::vector<Matrix>& FlattenLayer::FF(std::vector<Matrix>& _I) {
 	double* o_ptr = O[0].d_data();
 	auto sz = s_in.wh * sizeof(double);
-	namedPrint(s_in.wh);
 
 	for (int i = 0; i < d_in; ++i) {
 		_I[i].copyTo(I[i]);
-
-		//namedPrint(i);
-		namedPrint(I[i]);
 
 		cudaMemcpy(o_ptr + i*s_in.wh, I[i].d_data(), sz,
 				cudaMemcpyDeviceToDevice);

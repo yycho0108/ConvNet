@@ -118,6 +118,7 @@ void ConvolutionLayer::setup(Size& _s, int& _d) {
 		O.push_back(Matrix(s)); //same size
 
 		W.push_back(Matrix::rand(5, 5)); //5,5 = kernel size
+		//namedPrint(W[o]);
 		//Bias depends on output matrix size,
 		//Which is equivalent to the input matrix size (in case of this convolution)
 		dW.push_back(Matrix::zeros(5, 5));

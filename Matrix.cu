@@ -15,7 +15,7 @@ std::ostream& operator<<(std::ostream& os, Matrix& m){
 }
 
 typedef double (*dfun)(double);
-RandManager Matrix::rnd = RandManager(1024); //or some smaller value? welp.
+RandManager Matrix::rnd = RandManager(); //or some smaller value? welp.
 
 __device__ double vdot(double* a, double* b, int n){ //dot product of two vectors.
 	double res = 0;
@@ -327,8 +327,8 @@ double Matrix::max(Size* idx){
 			res = dat[i];
 
 			if(idx){
-				idx->h = i / idx->w;
-				idx->w = i % idx->w;
+				idx->h = i / s.w;
+				idx->w = i % s.w;
 			}
 
 		}
@@ -345,8 +345,8 @@ double Matrix::min(Size* idx){
 			res = dat[i];
 
 			if(idx){
-				idx->h = i / idx->w;
-				idx->w = i % idx->w;
+				idx->h = i / s.w;
+				idx->w = i % s.w;
 			}
 		}
 	}

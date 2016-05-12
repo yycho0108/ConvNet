@@ -4,7 +4,7 @@
 
 
 __global__ void pool(double* I, double* O, int* SW, //Switch
-		int iw, //width of input matrix
+		int iw, int ih, //width of input matrix
 		int s_w, int s_h,  //stride dims
 		int p_w, int p_h){ //pool dims
 
@@ -17,14 +17,15 @@ __global__ void pool(double* I, double* O, int* SW, //Switch
 	int j = threadIdx.x;
 
 	O[idx(i,j,w)] = -99999.0; // reasonably small value, anyways.
+	//TODO : fix all these arbitrary numbers
 
-	for(int ii=0;ii<p_h;++ii){
-		for(int jj=0;jj<p_w;++jj){
+	for(int ii=0;ii<p_h && s_h*i+ii < ih;++ii){ //check i+ii for bounds
+		for(int jj=0;jj<p_w && s_w*j+jj < iw;++jj){ //check j+jj for bounds
 			int index = idx(i,j,w);
 			int index_i = idx(s_h*i+ii,s_w*j+jj,iw);
 			double val = I[index_i];
 			if(val > O[index]){
-				SW[index] = index_i; //switches, though stored in flattened index
+				SW[index] = index_i; //switches, stored in flattened index
 				O[index] = val;
 			}
 		}
@@ -52,8 +53,8 @@ void PoolLayer::setup(Size& s, int& d){
 	s_in = s;
 	this->d = d;
 
-	int w = (s_in.w-s_p.w+s_s.w-1)/s_s.w;
-	int h = (s_in.h-s_p.h+s_s.h-1)/s_s.h;
+	int w = s_in.w / s_s.w; //(s_in.w-s_p.w+s_s.w-1)/s_s.w;
+	int h = s_in.h / s_s.h; //(s_in.h-s_p.h+s_s.h-1)/s_s.h;
 	s_out = Size(w,h);
 
 	SW.resize(d);
@@ -74,7 +75,7 @@ std::vector<Matrix>& PoolLayer::FF(std::vector<Matrix>& _I){
 	for(int i=0;i<d;++i){
 		_I[i].copyTo(I[i]);
 		pool<<<1, blockDims>>>(I[i].d_data(),O[i].d_data(),SW[i],
-				I[i].size().w,
+				s_in.w, s_in.h,
 				s_s.w, s_s.h,
 				s_p.w, s_p.h
 				);

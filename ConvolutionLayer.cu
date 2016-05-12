@@ -91,7 +91,7 @@ void deconvolve(Matrix& I, Matrix& _G, Matrix& dW) {
 
 }
 
-ConvolutionLayer::ConvolutionLayer(int d_out) :
+ConvolutionLayer::ConvolutionLayer(int d_out) : //TODO : accept kernel size
 		d_out(d_out) {
 	connection = nullptr;
 	d_in = 0;
@@ -134,8 +134,8 @@ void ConvolutionLayer::setup(Size& _s, int& _d) {
 	for (int o = 0; o < d_out; ++o) {
 		connection[o] = new bool[d_in];
 		for (int i = 0; i < d_in; ++i) {
-			//connection[o][i] = true;
-			connection[o][i] = ((o % 3) == (i % 3));
+			connection[o][i] = true;
+			//connection[o][i] = ((o % 3) == (i % 3));
 			//partial connection
 		}
 	}

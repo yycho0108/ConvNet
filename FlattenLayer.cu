@@ -15,7 +15,7 @@ void FlattenLayer::setup(Size& s, int& d) {
 
 	O.push_back(Matrix(s_out));
 	for (int i = 0; i < d_in; ++i) {
-		I.push_back(Matrix());
+		I.push_back(Matrix(s_in)); //preallocating
 		G.push_back(Matrix(s_in));
 	}
 
@@ -26,12 +26,15 @@ void FlattenLayer::setup(Size& s, int& d) {
 std::vector<Matrix>& FlattenLayer::FF(std::vector<Matrix>& _I) {
 	double* o_ptr = O[0].d_data();
 	auto sz = s_in.wh * sizeof(double);
+	namedPrint(s_in.wh);
 
 	for (int i = 0; i < d_in; ++i) {
-		//TODO : copying to I is unnecessary, but left here for clarity for now
 		_I[i].copyTo(I[i]);
 
-		cudaMemcpy(o_ptr + s_in.wh, I[i].d_data(), sz,
+		//namedPrint(i);
+		namedPrint(I[i]);
+
+		cudaMemcpy(o_ptr + i*s_in.wh, I[i].d_data(), sz,
 				cudaMemcpyDeviceToDevice);
 	}
 	return O;
@@ -42,7 +45,7 @@ std::vector<Matrix>& FlattenLayer::BP(std::vector<Matrix>& _G) {
 	auto sz = s_in.wh * sizeof(double);
 
 	for (int i = 0; i < d_in; ++i) {
-		cudaMemcpy(G[i].d_data(), g_ptr + s_in.wh, sz,
+		cudaMemcpy(G[i].d_data(), g_ptr + i*s_in.wh, sz,
 				cudaMemcpyDeviceToDevice);
 	}
 

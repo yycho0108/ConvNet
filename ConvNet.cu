@@ -15,6 +15,7 @@ std::vector<Matrix>& ConvNet::FF(std::vector<Matrix>& _I){
 	auto I = &_I; //ptr to vector
 	for(auto& l : L){
 		I = &(l->FF(*I));
+		namedPrint((*I)[0]);
 		//take ptr only, no copy
 	}
 	return *I;

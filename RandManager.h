@@ -13,10 +13,9 @@
 
 class RandManager {
 private:
-	int N;
-	curandState* s;
+	curandGenerator_t rgen;
 public:
-	RandManager(int N);
+	RandManager();
 	~RandManager();
 	void rand(double* a, int n);
 };

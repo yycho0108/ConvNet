@@ -83,7 +83,7 @@ void train(ConvNet& net, int lim){
 void test(ConvNet& net){
 	keepTesting = true;
 
-	Parser tester("../data/testData","../data/testLabel");
+	Parser tester("data/testData","data/testLabel");
 
 	Matrix d,l;
 	std::vector<Matrix> X(1),Y(1);
@@ -94,9 +94,10 @@ void test(ConvNet& net){
 	while(tester.read(X[0],Y[0]) && keepTesting){ //read into X,Y
 		Size y;
 		Size t;
+		auto& Yp = net.FF(X);
 
-		net.FF(X)[0].max(&y);
-		Y[0].max(&y);
+		Yp[0].max(&y);
+		Y[0].max(&t);
 
 		y==t?(++cor):(++inc);
 		cout << "y[" << y.h << "]:T[" << t.h <<"]"<<endl;
@@ -124,7 +125,7 @@ int main(int argc, char* argv[]){
 	ConvNet net;
 	setup(net);
 	train(net, lim);
-	test(net);
+	//test(net);
 }
 //
 //static const int WORK_SIZE = 256;

@@ -15,6 +15,10 @@
 		content; \
 	} \
 
+#define namedPrint(x) \
+	std::cout << #x << " : " << x << std::endl;
+
+
 extern void convolve_d(double* i, double* k, double* o,
 		int n, int m, int r);
 

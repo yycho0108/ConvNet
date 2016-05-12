@@ -63,6 +63,8 @@ void train(ConvNet& net, int lim){
 			trainer.reset();
 		}
 
+		X[0].print(std::cout);
+
 		if(++i > lim || !keepTraining)
 			return;
 

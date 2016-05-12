@@ -12,7 +12,8 @@
 #include "Utility.h"
 #include "RandManager.h"
 
-#include <functional>
+#include <iostream>
+//#include <functional>
 
 
 struct Matrix {
@@ -95,6 +96,8 @@ public:
 	static Matrix transpose(Matrix&);
 
 	void sync(); //synchronizes device-host memory
+
+	void print(std::ostream& s); //visualizing Matrix Data
 
 	//getters
 	Size size();

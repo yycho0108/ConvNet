@@ -9,7 +9,6 @@
 #include "curand.h"
 #include "curand_kernel.h"
 
-#include <random>
 
 using dfun = double (*)(double);
 
@@ -388,6 +387,7 @@ void Matrix::copyTo(Matrix& m){
 }
 
 void Matrix::transpose(){
+	//TODO : figure out a better way to do this.s
 	*this = transpose(*this);
 	synced = false;
 	//since transpose outputs an rvalue,
@@ -451,6 +451,17 @@ void Matrix::sync(){
 	}
 }
 
+void Matrix::print(std::ostream& out){
+	sync();
+	int w = s.w;
+	for(int i=0;i<s.h;++i){
+		for(int j=0;j<s.w;++j){
+			out << dat[idx(i,j,s.w)] << ' ';
+		}
+		out << '\n';
+	}
+	out << std::endl;
+}
 Size Matrix::size(){
 	return s;
 }

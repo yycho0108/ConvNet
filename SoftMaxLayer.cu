@@ -22,20 +22,23 @@ SoftMaxLayer::~SoftMaxLayer(){
 void SoftMaxLayer::setup(Size& s, int& d){
 	this->s = s;
 	this->d = d;
+	I.push_back(Matrix(s));
 	O.push_back(Matrix(s));
 	G.push_back(Matrix(s));
 }
 
 std::vector<Matrix>& SoftMaxLayer::FF(std::vector<Matrix>& _I){
-	I.swap(_I);
 	for(int i=0;i<d;++i){
+		_I[i].copyTo(I[i]);
 		softMax(I[i],O[i]);
 	}
 	return O;
 }
 std::vector<Matrix>& SoftMaxLayer::BP(std::vector<Matrix>& _G){
 	throw "SoftMAX : BP Not Implemented";
-	G.swap(_G);
+	for(int i=0;i<d;++i){
+		_G[i].copyTo(G[i]);
+	}
 	return G;
 }
 

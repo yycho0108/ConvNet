@@ -59,7 +59,7 @@ void PoolLayer::setup(Size& s, int& d){
 	SW.resize(d);
 	for(int i=0;i<d;++i){
 		cudaMalloc(&SW[i],sizeof(int) * w*h);
-		I.push_back(Matrix()); //doesn't need to allocate memory here
+		I.push_back(Matrix(s_in)); //doesn't need to allocate memory here
 		G.push_back(Matrix(s_in));
 		O.push_back(Matrix(s_out));
 	}
@@ -69,8 +69,6 @@ void PoolLayer::setup(Size& s, int& d){
 }
 
 std::vector<Matrix>& PoolLayer::FF(std::vector<Matrix>& _I){
-	I = _I;
-
 	dim3 blockDims(s_out.w, s_out.h);
 
 	for(int i=0;i<d;++i){

@@ -31,7 +31,7 @@ void DenseLayer::setup(Size& s, int& d) {
 	O.push_back(Matrix());
 	G.push_back(Matrix());
 
-	s = s_o;
+	s = Size(1,s_o);
 	d = 1;
 }
 

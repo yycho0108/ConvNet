@@ -35,53 +35,87 @@ double __device__ tanhPrime(double x) {
 	return 1 - x * x;
 	//return x * (1-x);
 }
-void __global__ activate(double* I, double* O, double f(double)) {
+void __global__ activate(double* I, double* O, dfun f) {
 	//can be called from host
 	int i = threadIdx.x;
 	O[i] = f(I[i]);
 }
-void activate(Matrix& I, Matrix& O, double f(double)) {
+void activate(Matrix& I, Matrix& O, dfun f) {
 	int n_elem = I.size().wh;
 	activate<<<1, n_elem>>>
 			(I.d_data(), O.d_data(), f);
 	//TODO: potentially divide up to more threads?
 }
 
+__device__ dfun pf_sig = sigmoid;
+__device__ dfun pf_sig_d = sigmoidPrime;
+__device__ dfun pf_sp = softplus;
+__device__ dfun pf_sp_d = softplusPrime;
+__device__ dfun pf_relu = ReLU;
+__device__ dfun pf_relu_d = ReLUPrime;
+__device__ dfun pf_tanh = mytanh;
+__device__ dfun pf_tanh_d = tanhPrime;
+
 ActivationLayer::ActivationLayer(std::string _f) {
-	using dfun = double (*)(double);
+
 
 	for (auto& c : _f) {
 		c = std::tolower(c);
 	}
 
-	cudaMalloc(&f,sizeof(dfun));
-	cudaMalloc(&f_d,sizeof(dfun));
+	//cudaMalloc(&f,sizeof(dfun));
+	//cudaMalloc(&f_d,sizeof(dfun));
 
 	if (_f == "sigmoid") {
-		cudaMemcpyFromSymbol(&f, sigmoid, sizeof(dfun));
-		cudaMemcpyFromSymbol(&f_d, sigmoidPrime, sizeof(dfun));
+		cudaMemcpyFromSymbol(&f, pf_sig, sizeof(dfun),0,cudaMemcpyDeviceToHost);
+		cudaMemcpyFromSymbol(&f_d, pf_sig_d, sizeof(dfun),0,cudaMemcpyDeviceToHost);
+		//pf = sigmoid;
+		//pf_d = sigmoidPrime;
+		//cudaMemcpyFromSymbol(&h_f, sigmoid, sizeof(dfun));
+		//cudaMemcpyFromSymbol(&h_f_d, sigmoidPrime, sizeof(dfun));
 		//f = sigmoid;
 		//f_d = sigmoidPrime;
 	} else if (_f == "softplus") {
-		cudaMemcpyFromSymbol(&f, softplus, sizeof(dfun));
-		cudaMemcpyFromSymbol(&f_d, softplusPrime, sizeof(dfun));
+		cudaMemcpyFromSymbol(&f, pf_sp, sizeof(dfun),0,cudaMemcpyDeviceToHost);
+		cudaMemcpyFromSymbol(&f_d, pf_sp_d, sizeof(dfun),0,cudaMemcpyDeviceToHost);
+
+		//pf = softplus;
+		//pf_d = softplusPrime;
+		//cudaMemcpyFromSymbol(&h_f, softplus, sizeof(dfun));
+		//cudaMemcpyFromSymbol(&h_f_d, softplusPrime, sizeof(dfun));
 
 		//f = softplus;
 		//f_d = softplusPrime;
 	} else if (_f == "relu") {
-		cudaMemcpyFromSymbol(&f, ReLU, sizeof(dfun));
-		cudaMemcpyFromSymbol(&f_d, ReLUPrime, sizeof(dfun));
+		cudaMemcpyFromSymbol(&f, pf_relu, sizeof(dfun),0,cudaMemcpyDeviceToHost);
+		cudaMemcpyFromSymbol(&f_d, pf_relu_d, sizeof(dfun),0,cudaMemcpyDeviceToHost);
 
+		//pf = ReLU;
+		//pf_d = ReLUPrime;
+		//cudaMemcpyFromSymbol(&h_f, ReLU, sizeof(dfun));
+		//cudaMemcpyFromSymbol(&h_f_d, ReLUPrime, sizeof(dfun));
 		//f = ReLU;
 		//f_d = ReLUPrime;
 	} else if (_f == "tanh") {
-		cudaMemcpyFromSymbol(&f, mytanh, sizeof(dfun));
-		cudaMemcpyFromSymbol(&f_d, tanhPrime, sizeof(dfun));
+		cudaMemcpyFromSymbol(&f, pf_tanh, sizeof(dfun),0,cudaMemcpyDeviceToHost);
+		cudaMemcpyFromSymbol(&f_d, pf_tanh_d, sizeof(dfun),0,cudaMemcpyDeviceToHost);
+
+		//pf = mytanh;
+		//pf_d = tanhPrime;
+		//cudaMemcpyFromSymbol(&h_f, mytanh, sizeof(dfun));
+		//cudaMemcpyFromSymbol(&h_f_d, tanhPrime, sizeof(dfun));
 		//f = mytanh;
 		//f_d = tanhPrime;
 	} else {
 		throw "WRONG ACTIVATION FUNCTION!!";
 	}
+	//dfun h_f; // = (dfun*)malloc(sizeof(dfun));
+	//dfun h_f_d;// = (dfun*)malloc(sizeof(dfun));
+	//cudaMemcpyFromSymbol(&f, pf, sizeof(dfun),0,cudaMemcpyDeviceToHost);
+	//cudaMemcpyFromSymbol(&f_d, pf_d, sizeof(dfun),0,cudaMemcpyDeviceToHost);
+
+	//cudaMemcpy(f,&h_f,sizeof(dfun),cudaMemcpyHostToDevice);
+	//cudaMemcpy(f_d,&h_f_d,sizeof(dfun),cudaMemcpyHostToDevice);
 
 }
 
@@ -96,7 +130,7 @@ void ActivationLayer::setup(Size& _s, int& _d) {
 	d = _d;
 
 	for (int i = 0; i < d; ++i) {
-		//don't need anything for I here
+		I.push_back(Matrix(s));
 		G.push_back(Matrix(s));
 		O.push_back(Matrix(s));
 	}

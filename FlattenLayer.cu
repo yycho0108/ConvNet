@@ -1,7 +1,7 @@
 #include "FlattenLayer.h"
 
 FlattenLayer::FlattenLayer() {
-
+	d_in=0;
 }
 
 FlattenLayer::~FlattenLayer() {
@@ -15,6 +15,7 @@ void FlattenLayer::setup(Size& s, int& d) {
 
 	O.push_back(Matrix(s_out));
 	for (int i = 0; i < d_in; ++i) {
+		I.push_back(Matrix());
 		G.push_back(Matrix(s_in));
 	}
 

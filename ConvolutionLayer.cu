@@ -149,8 +149,6 @@ std::vector<Matrix>& ConvolutionLayer::FF(std::vector<Matrix>& _I) {
 		_I[i].copyTo(I[i]);
 	}
 
-	G = std::vector<Matrix>(I.size()); //Gradient
-
 	Matrix tmp = Matrix(W[0].size());
 
 	for (int o = 0; o < d_out; ++o) {

@@ -66,9 +66,9 @@ void train(ConvNet& net, int lim){
 		if(++i > lim || !keepTraining)
 			return;
 
-		if(!(i%100)){
+		//if(!(i%100)){
 			cout << "TRAINING ... " << i << endl;
-		}
+		//}
 		auto Yp = net.FF(X);
 		//cout << "YP: " << Yp[0].t() << endl;
 		//cout << "YL " << Y[0].t() << endl;

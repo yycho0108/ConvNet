@@ -4,13 +4,14 @@
 #include "Layer.h"
 #include <string>
 
+typedef double (*dfun)(double);
+
 class ActivationLayer : public Layer{
 private:
 	int d;
 	Size s;
-
-	double (*f)(double); //device functions.
-	double (*f_d)(double);
+	dfun f;
+	dfun f_d;
 
 	std::vector<Matrix> I;
 	std::vector<Matrix> O;

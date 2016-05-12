@@ -52,6 +52,7 @@ Matrix dot(Matrix& a, Matrix& b){
 	Matrix o(b.size().w, a.size().h);
 
 	dotT<<<b.size().w, a.size().h>>>(a.d_data(),b.d_data(),o.d_data(),com);
+	return o;
 }
 
 __global__ void dot(double* a, double* b, double* o,
@@ -75,7 +76,7 @@ __global__ void _transpose(double* I, double* O){
 	O[idx(j,i,h)] = I[idx(i,j,w)];
 }
 
-Matrix::Matrix(){
+Matrix::Matrix():d_dat(nullptr),dat(nullptr),s(0,0),synced(false){
 	//nothing!
 }
 

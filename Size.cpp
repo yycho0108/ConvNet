@@ -27,8 +27,8 @@ Size& Size::operator=(const Size& s){
 	return *this;
 }
 bool Size::operator!=(const Size& s){
-	return (w != s.w || h != s.h);
+	return !(*this == s);
 }
 bool Size::operator==(const Size& s){
-	return !(*this != s);
+	return (w == s.w) && (h == s.h);
 }

@@ -24,7 +24,7 @@ __device__ double vdot(double* a, double* b, int n){ //dot product of two vector
 	}
 	return res;
 }
-__global__ void _apply(double* I, dfun f){
+__global__ void apply(double* I, dfun f){
 	int i = threadIdx.x;
 	I[i] = f(I[i]);
 }
@@ -71,12 +71,7 @@ Matrix dot(Matrix& a, Matrix& b){
 	Matrix o(b.size().w, a.size().h);
 
 	auto s = o.size();
-	namedPrint(a.size().w);
-	namedPrint(a.size().h);
-	namedPrint(b.size().w);
-	namedPrint(b.size().h);
 
-	namedPrint(s.wh);
 	if(s.wh < 1024){
 		dim3 blockDims(s.w, s.h);
 		dotT<<<1,blockDims>>>(a.d_data(),bT.d_data(),o.d_data(),com);
@@ -350,7 +345,7 @@ double Matrix::operator()(int i, int j){
 Matrix& Matrix::apply(dfun f){
 	dfun f_d; //must be device function... I think.
 	cudaMemcpyFromSymbol(&f_d,f,sizeof(dfun));
-	_apply<<<1,s.wh>>>(d_dat,f_d);
+	::apply<<<1,s.wh>>>(d_dat,f_d);
 	synced = false;
 	//if 'device function' trick doesn't work, copy function to symbol with
 	//cudaMemcpyFromSymbol( &h_f[0], pfunc1, sizeof(func));
@@ -426,11 +421,16 @@ void Matrix::eye(){
 
 	synced = false;
 }
+
 void Matrix::rand(){
 	rnd.rand(d_dat,s.wh);
 	*this -= 0.5;
-
+	*this /= 10.0;
 	synced = false;
+}
+
+void Matrix::abs(){
+	::abs(d_dat,d_dat,s.wh);
 }
 void Matrix::copyTo(Matrix& m){
 	auto sz = s.wh*sizeof(double);
@@ -520,12 +520,22 @@ Matrix Matrix::transpose(Matrix& I){
 	}
 	return O;
 }
+Matrix Matrix::abs(Matrix& src){
+	Matrix dst;
+	src.copyTo(dst);
+	dst.abs();
+	return dst;
+}
 
 void Matrix::sync(){
 	if(!synced){
 		cudaMemcpy(dat,d_dat,s.wh*sizeof(double),cudaMemcpyDeviceToHost);
 		synced = true;
 	}
+}
+void Matrix::sync_r(){
+	cudaMemcpy(d_dat,dat,s.wh*sizeof(double),cudaMemcpyHostToDevice);
+	synced = true;
 }
 
 void Matrix::print(std::ostream& out){

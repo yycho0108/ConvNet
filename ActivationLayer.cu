@@ -40,10 +40,21 @@ void __global__ activate(double* I, double* O, dfun f) {
 	int i = threadIdx.x;
 	O[i] = f(I[i]);
 }
+void __global__ activate(double* I, double* O, dfun f, int lim) {
+	int i = blockIdx.x * blockDim.x + threadIdx.x;
+
+	if(i<lim)
+		O[i] = f(I[i]);
+}
 void activate(Matrix& I, Matrix& O, dfun f) {
 	int n_elem = I.size().wh;
-	activate<<<1, n_elem>>>
-			(I.d_data(), O.d_data(), f);
+	if(n_elem < 1024){
+		activate<<<1, n_elem>>>
+					(I.d_data(), O.d_data(), f);
+	}else{
+		activate<<<n_elem / 1024, 1024>>>
+					(I.d_data(), O.d_data(), f, n_elem);
+	}
 	//TODO: potentially divide up to more threads?
 }
 
@@ -57,8 +68,6 @@ __device__ dfun pf_tanh = mytanh;
 __device__ dfun pf_tanh_d = tanhPrime;
 
 ActivationLayer::ActivationLayer(std::string _f) {
-
-
 	for (auto& c : _f) {
 		c = std::tolower(c);
 	}

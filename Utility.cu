@@ -1,5 +1,6 @@
 #include "Utility.h"
 
+/* n < 1024 */
 __global__ void _add(double* a, double* b, double* out){
 	int i = threadIdx.x;
 	out[i] = a[i]+b[i];
@@ -34,33 +35,124 @@ __global__ void _div(double* a, double b, double* out){
 	out[i] = a[i]/b;
 }
 
+__global__ void _abs(double* in, double* out){
+	int i = threadIdx.x;
+	out[i] = in[i]>0?in[i]:-in[i];
+}
+
+/* n >= 1024 */
+__global__ void _add(double* a, double* b, double* out, int n){
+	int i = blockIdx.x * blockDim.x + threadIdx.x;
+	if(i < n)
+		out[i] = a[i]+b[i];
+}
+__global__ void _sub(double* a, double* b, double* out, int n){
+	int i = blockIdx.x * blockDim.x + threadIdx.x;
+	if(i<n)
+		out[i] = a[i]-b[i];
+}
+__global__ void _mul(double* a, double* b, double* out, int n){
+	int i = blockIdx.x * blockDim.x + threadIdx.x;
+	if(i<n)
+		out[i] = a[i]*b[i];
+}
+__global__ void _div(double* a, double* b, double* out, int n){
+	int i = blockIdx.x * blockDim.x + threadIdx.x;
+	if(i<n)
+		out[i] = a[i]/b[i];
+}
+
+__global__ void _add(double* a, double b, double* out, int n){
+	int i = blockIdx.x * blockDim.x + threadIdx.x;
+	if(i<n)
+		out[i] = a[i]+b;
+}
+__global__ void _sub(double* a, double b, double* out, int n){
+	int i = blockIdx.x * blockDim.x + threadIdx.x;
+	if(i<n)
+		out[i] = a[i]-b;
+}
+__global__ void _mul(double* a, double b, double* out, int n){
+	int i = blockIdx.x * blockDim.x + threadIdx.x;
+	if(i<n)
+		out[i] = a[i]*b;
+}
+__global__ void _div(double* a, double b, double* out, int n){
+	int i = blockIdx.x * blockDim.x + threadIdx.x;
+	if(i<n)
+		out[i] = a[i]/b;
+}
+
 
 void add(double* a, double* b, double* o, int n){
-	_add<<<1,n>>>(a,b,o);
+	if(n < 1024){
+		_add<<<1,n>>>(a,b,o);
+	}else{
+		int nb = (n + 255) / 256; //# of blocks
+		_add<<<nb,256>>>(a,b,o,n);
+	}
 }
 void sub(double* a, double* b, double* o, int n){
-	_sub<<<1,n>>>(a,b,o);
+	if(n < 1024){
+		_sub<<<1,n>>>(a,b,o);
+	}else{
+		int nb = (n + 255) / 256; //# of blocks
+		_sub<<<nb,256>>>(a,b,o,n);
+	}
 }
 void mul(double* a, double* b, double* o, int n){
-	_mul<<<1,n>>>(a,b,o);
+	if(n < 1024){
+		_mul<<<1,n>>>(a,b,o);
+	}else{
+		int nb = (n + 255) / 256; //# of blocks
+		_mul<<<nb,256>>>(a,b,o,n);
+	}
 }
 void div(double* a, double* b, double* o, int n){
-	_div<<<1,n>>>(a,b,o);
+	if(n < 1024){
+		_div<<<1,n>>>(a,b,o);
+	}else{
+		int nb = (n + 255) / 256; //# of blocks
+		_div<<<nb,256>>>(a,b,o,n);
+	}
 }
 
 void add(double* a, double b, double* o, int n){
-	_add<<<1,n>>>(a,b,o);
+	if(n < 1024){
+		_add<<<1,n>>>(a,b,o);
+	}else{
+		int nb = (n + 255) / 256; //# of blocks
+		_add<<<nb,256>>>(a,b,o,n);
+	}
 }
 void sub(double* a, double b, double* o, int n){
-	_sub<<<1,n>>>(a,b,o);
+	if(n < 1024){
+		_sub<<<1,n>>>(a,b,o);
+	}else{
+		int nb = (n + 255) / 256; //# of blocks
+		_sub<<<nb,256>>>(a,b,o,n);
+	}
 }
 void mul(double* a, double b, double* o, int n){
-	_mul<<<1,n>>>(a,b,o);
+	if(n < 1024){
+		_mul<<<1,n>>>(a,b,o);
+	}else{
+		int nb = (n + 255) / 256; //# of blocks
+		_mul<<<nb,256>>>(a,b,o,n);
+	}
 }
 void div(double* a, double b, double* o, int n){
-	_div<<<1,n>>>(a,b,o);
+	if(n < 1024){
+		_div<<<1,n>>>(a,b,o);
+	}else{
+		int nb = (n + 255) / 256; //# of blocks
+		_div<<<nb,256>>>(a,b,o,n);
+	}
 }
 
+void abs(double* in, double* out, int n){
+	_abs<<<1,n>>>(in,out);
+}
 __global__ void _convolve(double* d_i, double* d_k, double* d_o,int r){
 	int i = threadIdx.y;
 	int j = threadIdx.x;

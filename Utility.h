@@ -18,6 +18,8 @@
 #define namedPrint(x) \
 	std::cout << #x << " : " << x << std::endl;
 
+#define hline() \
+	std::cout << "------------------" << std::endl;
 
 extern void convolve_d(double* i, double* k, double* o,
 		int n, int m, int r);
@@ -36,5 +38,6 @@ extern void add(double* a, double b, double* o, int n);
 extern void sub(double* a, double b, double* o, int n);
 extern void mul(double* a, double b, double* o, int n);
 extern void div(double* a, double b, double* o, int n);
+extern void abs(double* in, double* out, int n);
 
 #endif /* UTILITY_H_ */

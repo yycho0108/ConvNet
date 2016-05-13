@@ -95,7 +95,8 @@ void test(ConvNet& net){
 		Size y;
 		Size t;
 		auto& Yp = net.FF(X);
-
+		namedPrint(Y[0]);
+		namedPrint(Yp[0]);
 		Yp[0].max(&y);
 		Y[0].max(&t);
 
@@ -125,7 +126,7 @@ int main(int argc, char* argv[]){
 	ConvNet net;
 	setup(net);
 	train(net, lim);
-	//test(net);
+	test(net);
 }
 //
 //static const int WORK_SIZE = 256;

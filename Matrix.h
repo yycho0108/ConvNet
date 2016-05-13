@@ -80,6 +80,7 @@ public:
 	void one(); //set to zero
 	void eye(); //set to identity
 	void rand(); //set to rand
+	void abs(); //set to positive
 
 	void copyTo(Matrix& m); //copy to data, check for nullptr
 	void transpose();
@@ -94,9 +95,10 @@ public:
 	static Matrix rand(Size s);
 
 	static Matrix transpose(Matrix&);
+	static Matrix abs(Matrix&);
 
 	void sync(); //synchronizes device-host memory
-
+	void sync_r(); //host to device
 	void print(std::ostream& s); //visualizing Matrix Data
 
 	//getters

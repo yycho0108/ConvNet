@@ -28,12 +28,14 @@ void ConvNet::BP(std::vector<Matrix>& O, std::vector<Matrix>& T){
 		_G.push_back(T[i]-O[i]);
 		//G[i] = Y[i] - Yp[i];
 	}
-	namedPrint(_G[0]);
+	//hline();
+	//namedPrint(_G[0]);
+	//hline();
 	auto G = &_G;
 	for(auto i = L.rbegin()+1; i != L.rend(); ++i){
 		auto& l = (*i);
 		G = &l->BP(*G);
-		namedPrint((*G)[0]);
+		//namedPrint((*G)[0]);
 	}
 
 	for(auto& l : L){

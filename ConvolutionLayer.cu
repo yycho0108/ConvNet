@@ -116,7 +116,6 @@ void ConvolutionLayer::setup(Size& _s, int& _d) {
 
 	for (int o = 0; o < d_out; ++o) {
 		O.push_back(Matrix(s)); //same size
-
 		W.push_back(Matrix::rand(5, 5)); //5,5 = kernel size
 		//namedPrint(W[o]);
 		//Bias depends on output matrix size,

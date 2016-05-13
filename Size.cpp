@@ -6,6 +6,9 @@
  */
 
 #include "Size.h"
+std::ostream& operator<<(std::ostream& os,Size& s){
+	return os << "w : " << s.w << "h : " << s.h;
+}
 
 Size::Size(int w, int h):w(w),h(h),wh(w*h){
 	// TODO Auto-generated constructor stub

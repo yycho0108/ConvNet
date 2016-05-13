@@ -7,6 +7,7 @@
 
 #ifndef __SIZE_H__
 #define __SIZE_H__
+#include <iostream>
 
 struct Size {
 
@@ -23,5 +24,6 @@ public:
 	bool operator!=(const Size&);
 
 };
+extern std::ostream& operator<<(std::ostream&,Size&);
 
 #endif /* SIZE_H_ */

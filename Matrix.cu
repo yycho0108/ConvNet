@@ -136,7 +136,7 @@ Matrix::Matrix(int w, int h, double* d)
 		memcpy(dat,d,sz);
 		cudaMemcpy(d_dat,d,sz,cudaMemcpyHostToDevice);
 	}
-	synced = false;
+	synced = true;
 }
 
 Matrix::Matrix(const Matrix& m){

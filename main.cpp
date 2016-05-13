@@ -71,7 +71,7 @@ void train(ConvNet& net, int lim){
 		//if(!(i%100)){
 			cout << "TRAINING ... " << i << endl;
 		//}
-		auto Yp = net.FF(X);
+		auto& Yp = net.FF(X);
 		//cout << "YP: " << Yp[0].t() << endl;
 		//cout << "YL " << Y[0].t() << endl;
 		net.BP(Yp,Y);
@@ -92,15 +92,30 @@ void test(ConvNet& net){
 	int inc = 0;
 
 	while(tester.read(X[0],Y[0]) && keepTesting){ //read into X,Y
+		//namedPrint(X[0]);
+
+		/* VISUALIZATION START */
+		/*auto i_ptr = X[0].data();
+		for(int i=0;i<28;++i){
+			for(int j=0;j<28;++j){
+				std::cout << (i_ptr[idx(i,j,28)]>0.5?'1':'0');
+			}
+			std::cout << '\n';
+		}
+		std::cout << std::endl;*/
+		/* VISUALIZATION END */
+
 		Size y;
 		Size t;
 		auto& Yp = net.FF(X);
-		namedPrint(Y[0]);
-		namedPrint(Yp[0]);
+		//namedPrint(Y[0]);
+		//namedPrint(Yp[0]);
 		Yp[0].max(&y);
 		Y[0].max(&t);
+		//namedPrint(y);
+		//namedPrint(t);
 
-		y==t?(++cor):(++inc);
+		(y==t)?(++cor):(++inc);
 		cout << "y[" << y.h << "]:T[" << t.h <<"]"<<endl;
 
 		printf("%d cor, %d inc\n", cor,inc);

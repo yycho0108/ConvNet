@@ -7,6 +7,7 @@ Parser::Parser(string d, string l){
 	if(f_d.fail() || f_l.fail()){
 		std::cerr << "ERROR : failed to open [" << d << ',' << l << "]:" << strerror(errno) << std::endl;
 	}
+
 	reset();
 }
 
@@ -25,11 +26,19 @@ bool Parser::read(Matrix& d, Matrix& l){
 	}
 
 	//get label to Matrix
+	hline();
 	memset(buf_l,0,10*sizeof(double));
+	//namedPrint((int)buf_l_raw[0]);
 	buf_l[buf_l_raw[0]] = 1.0;
 
 	d = Matrix(28,28,buf_d);
 	l = Matrix(1,10,buf_l);
+	//Size idx;
+	//l.max(&idx);
+
+	//namedPrint(l);
+	//namedPrint(idx.h);
+
 
 	return f_d && f_l;
 }

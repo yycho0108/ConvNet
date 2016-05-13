@@ -48,13 +48,43 @@ __global__ void dotT(double* a, double* b, double* o, int com){
 	// c = mat of n x m
 }
 
+__global__ void dotT(double* a, double* b, double* o, int com, int w, int h){
+	//b needs to be transposed prior to this.
+	int j = blockIdx.x * blockDim.x + threadIdx.x;
+	int i = blockIdx.y * blockDim.y + threadIdx.y;
+
+	/*
+	 *  v1a v1b v1c     w1a w2a w3a	     v1w1  v1w2 v1w3
+	 *  v2a v2b v2c  *  w1b w2b w3b ---> v2w1  v2w2 v2w3
+	 *  v3a v3b v3c     w1c w2c w3c      v3w1  v3w2 v3w3
+	 */
+	if(i<h && j<w)
+		o[idx(i,j,w)] = vdot(a + i*com, b+j*com, com); //length of common.
+	// here a = mat of n x com
+	// b = mat of com x m
+	// c = mat of n x m
+}
+
 Matrix dot(Matrix& a, Matrix& b){
 	int com = a.size().w; // == b.size().h;
 	Matrix bT = Matrix::transpose(b);
 	Matrix o(b.size().w, a.size().h);
 
-	dim3 blockDims(b.size().w, a.size().h);
-	dotT<<<1,blockDims>>>(a.d_data(),bT.d_data(),o.d_data(),com);
+	auto s = o.size();
+	namedPrint(a.size().w);
+	namedPrint(a.size().h);
+	namedPrint(b.size().w);
+	namedPrint(b.size().h);
+
+	namedPrint(s.wh);
+	if(s.wh < 1024){
+		dim3 blockDims(s.w, s.h);
+		dotT<<<1,blockDims>>>(a.d_data(),bT.d_data(),o.d_data(),com);
+	}else{
+		dim3 blockDims(16,16);
+		dim3 gridDims((s.w+15)/16,(s.h+15)/16);
+		dotT<<<gridDims,blockDims>>>(a.d_data(),bT.d_data(),o.d_data(),com, s.w, s.h);
+	}
 
 	return o;
 }
@@ -79,6 +109,16 @@ __global__ void _transpose(double* I, double* O){
 	int j = threadIdx.x;
 	O[idx(j,i,h)] = I[idx(i,j,w)];
 }
+
+__global__ void _transpose(double* I, double* O, int w, int h){
+	//TODO : optimize with 'shared memory'
+	int j = blockIdx.x * blockDim.x + threadIdx.x;
+	int i = blockIdx.y * blockDim.y + threadIdx.y;
+
+	if(i<h && j<w)
+		O[idx(j,i,h)] = I[idx(i,j,w)];
+}
+
 
 Matrix::Matrix():d_dat(nullptr),dat(nullptr),s(0,0),synced(false){
 	//nothing!
@@ -460,9 +500,24 @@ Matrix Matrix::rand(int w, int h){
 
 Matrix Matrix::transpose(Matrix& I){
 	//TODO : Improve transposition logic
-	Matrix O(I.size());
-	dim3 blockDims(I.size().w, I.size().h);
-	_transpose<<<1,blockDims>>>(I.d_dat,O.d_dat);
+	auto s = I.size();
+
+	Matrix O(s.h,s.w);
+
+	if(s.wh < 1024){
+		dim3 blockDims(s.w,s.h);
+		_transpose<<<1,blockDims>>>(I.d_dat,O.d_dat);
+	}else{
+		//split into approx. evenly sized blocks of 16x16 (or else, but determine that later)
+		int nb = (s.wh + 255)/256; // total number of blocks
+		dim3 blockDims(16,16);
+		dim3 gridDims((s.w+15)/16,(s.h+15)/16);
+		_transpose<<<gridDims,blockDims>>>(I.d_dat,O.d_dat,s.w,s.h);
+
+		//dim3 blockDims(TILE_DIM,TILE_DIM);
+		//dim3 gridDims((s.w + TILE_DIM -1)/TILE_DIM, (s.h + TILE_DIM - 1)/TILE_DIM);
+		//_transposeCoalesced<<<gridDims,blockDims>>>(I.d_dat,O.d_dat);
+	}
 	return O;
 }
 

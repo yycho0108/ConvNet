@@ -26,7 +26,7 @@ bool Parser::read(Matrix& d, Matrix& l){
 	}
 
 	//get label to Matrix
-	hline();
+	//hline();
 	memset(buf_l,0,10*sizeof(double));
 	//namedPrint((int)buf_l_raw[0]);
 	buf_l[buf_l_raw[0]] = 1.0;

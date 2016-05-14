@@ -8,6 +8,7 @@
 #include "Matrix.h"
 #include "curand.h"
 #include "curand_kernel.h"
+#include <cassert>
 
 std::ostream& operator<<(std::ostream& os, Matrix& m){
 	m.print(os);
@@ -66,6 +67,7 @@ __global__ void dotT(double* a, double* b, double* o, int com, int w, int h){
 }
 
 Matrix dot(Matrix& a, Matrix& b){
+	//assert(a.size().w == b.size().h);
 	int com = a.size().w; // == b.size().h;
 	Matrix bT = Matrix::transpose(b);
 	Matrix o(b.size().w, a.size().h);
@@ -538,12 +540,16 @@ void Matrix::sync_r(){
 	synced = true;
 }
 
+void Matrix::set_sync(bool s){
+	synced = s;
+}
 void Matrix::print(std::ostream& out){
 	sync();
+	int h = s.h;
 	int w = s.w;
-	for(int i=0;i<s.h;++i){
-		for(int j=0;j<s.w;++j){
-			out << dat[idx(i,j,s.w)] << ' ';
+	for(int i=0;i<h;++i){
+		for(int j=0;j<w;++j){
+			out << dat[idx(i,j,w)] << ' ';
 		}
 		out << '\n';
 	}

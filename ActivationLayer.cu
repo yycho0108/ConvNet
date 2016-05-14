@@ -35,6 +35,10 @@ double __device__ tanhPrime(double x) {
 	return 1 - x * x;
 	//return x * (1-x);
 }
+void __global__ sigmoid(double* I, double* O){
+	int i = threadIdx.x;
+	O[i]  = 1.0 / (1.0 + exp(-I[i]));
+}
 void __global__ activate(double* I, double* O, dfun f) {
 	//can be called from host
 	int i = threadIdx.x;
@@ -47,14 +51,20 @@ void __global__ activate(double* I, double* O, dfun f, int lim) {
 		O[i] = f(I[i]);
 }
 void activate(Matrix& I, Matrix& O, dfun f) {
+
 	int n_elem = I.size().wh;
+	//hline();
+	//namedPrint(I);
+
 	if(n_elem < 1024){
 		activate<<<1, n_elem>>>
 					(I.d_data(), O.d_data(), f);
 	}else{
-		activate<<<n_elem / 1024, 1024>>>
+		activate<<< (n_elem+255) / 256, 256>>>
 					(I.d_data(), O.d_data(), f, n_elem);
 	}
+	//O.set_sync(false);
+	//namedPrint(O);
 	//TODO: potentially divide up to more threads?
 }
 
@@ -73,17 +83,17 @@ ActivationLayer::ActivationLayer(std::string _f) {
 	}
 
 	if (_f == "sigmoid") {
-		cudaMemcpyFromSymbol(&f, pf_sig, sizeof(dfun),0,cudaMemcpyDeviceToHost);
-		cudaMemcpyFromSymbol(&f_d, pf_sig_d, sizeof(dfun),0,cudaMemcpyDeviceToHost);
+		cudaMemcpyFromSymbol(&f, pf_sig, sizeof(dfun));
+		cudaMemcpyFromSymbol(&f_d, pf_sig_d, sizeof(dfun));
 	} else if (_f == "softplus") {
-		cudaMemcpyFromSymbol(&f, pf_sp, sizeof(dfun),0,cudaMemcpyDeviceToHost);
-		cudaMemcpyFromSymbol(&f_d, pf_sp_d, sizeof(dfun),0,cudaMemcpyDeviceToHost);
+		cudaMemcpyFromSymbol(&f, pf_sp, sizeof(dfun));
+		cudaMemcpyFromSymbol(&f_d, pf_sp_d, sizeof(dfun));
 	} else if (_f == "relu") {
-		cudaMemcpyFromSymbol(&f, pf_relu, sizeof(dfun),0,cudaMemcpyDeviceToHost);
-		cudaMemcpyFromSymbol(&f_d, pf_relu_d, sizeof(dfun),0,cudaMemcpyDeviceToHost);
+		cudaMemcpyFromSymbol(&f, pf_relu, sizeof(dfun));
+		cudaMemcpyFromSymbol(&f_d, pf_relu_d, sizeof(dfun));
 	} else if (_f == "tanh") {
-		cudaMemcpyFromSymbol(&f, pf_tanh, sizeof(dfun),0,cudaMemcpyDeviceToHost);
-		cudaMemcpyFromSymbol(&f_d, pf_tanh_d, sizeof(dfun),0,cudaMemcpyDeviceToHost);
+		cudaMemcpyFromSymbol(&f, pf_tanh, sizeof(dfun));
+		cudaMemcpyFromSymbol(&f_d, pf_tanh_d, sizeof(dfun));
 	} else {
 		throw "WRONG ACTIVATION FUNCTION!!";
 	}
@@ -109,7 +119,12 @@ void ActivationLayer::setup(Size& _s, int& _d) {
 std::vector<Matrix>& ActivationLayer::FF(std::vector<Matrix>& _I) {
 	for (int i = 0; i < d; ++i) {
 		_I[i].copyTo(I[i]);
+		//namedPrint(I[i]);
+		//sigmoid<<<1,s.wh>>>(I[i].d_data(),O[i].d_data());
 		activate(I[i], O[i], f);
+		O[i].set_sync(false); //O[i] is not synced anymore!
+		//namedPrint(O[i]);
+
 	}
 	return O;
 }

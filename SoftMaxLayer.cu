@@ -7,9 +7,9 @@ __global__ void softMax_half(double* I, double* O, double max_in) {
 
 void softMax(Matrix& I, Matrix& O) {
 	double max_in = I.max();
-	namedPrint(I);
+	//namedPrint(I);
 	// currently implemented in host, due to strange bug.
-	I.copyTo(O);
+	/*I.copyTo(O);
 	O.sync();
 
 	double accum;
@@ -22,12 +22,13 @@ void softMax(Matrix& I, Matrix& O) {
 		o_ptr[i] /= accum;
 	}
 
-	O.sync_r();
+	O.sync_r();*/
 
 	//device code:
-	//softMax_half<<<1,I.size().wh>>>(I.d_data(), O.d_data(), max_in);
-	//O /= O.sum();
-	namedPrint(O);
+	softMax_half<<<1,I.size().wh>>>(I.d_data(), O.d_data(), max_in);
+	O.set_sync(false);
+	O /= O.sum();
+	//namedPrint(O);
 }
 
 SoftMaxLayer::SoftMaxLayer() {

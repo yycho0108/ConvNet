@@ -192,6 +192,7 @@ std::vector<Matrix>& ConvolutionLayer::BP(std::vector<Matrix>& _G) {
 			if (connection[o][i]) { //if the channels are related..
 				G[i] += dG;
 				deconvolve(I[i], _G[o], dW[o]);
+				//dW[o].set_sync(false);
 			}
 		}
 

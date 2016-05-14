@@ -99,6 +99,7 @@ public:
 
 	void sync(); //synchronizes device-host memory
 	void sync_r(); //host to device
+	void set_sync(bool); //set synchronization state
 	void print(std::ostream& s); //visualizing Matrix Data
 
 	//getters

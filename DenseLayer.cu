@@ -36,8 +36,11 @@ void DenseLayer::setup(Size& s, int& d) {
 }
 
 std::vector<Matrix>& DenseLayer::FF(std::vector<Matrix>& _I) {
+
 	_I[0].copyTo(I[0]);
+	//namedPrint(I[0]);
 	O[0] = W * I[0] + B;
+	//namedPrint(O[0]);
 	return O; //no activation! add it separately.
 }
 
@@ -45,9 +48,6 @@ std::vector<Matrix>& DenseLayer::BP(std::vector<Matrix>& _G) {
 	//TODO : implement fancy optimizations
 	Matrix Wt = Matrix::transpose(W);
 	G[0] = Wt * _G[0];
-//	namedPrint(Wt);
-//	namedPrint(_G[0]);
-//	namedPrint(G[0]);
 	dW = (dW_p * MOMENTUM) // momentum * previous dW
 			+ (_G[0] * Matrix::transpose(I[0]) * ETA) // learning rate * weight error
 			- (W * DECAY); //decay * weight

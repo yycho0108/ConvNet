@@ -32,12 +32,13 @@ void intHandler(int){
 void setup(ConvNet& net){
 	/* ** CONV LAYER TEST ** */
 
-	net.push_back(new ConvolutionLayer(12));
+	/*net.push_back(new ConvolutionLayer(12));
 	net.push_back(new ActivationLayer("relu"));
 	net.push_back(new PoolLayer(Size(2,2),Size(2,2)));
 	net.push_back(new ConvolutionLayer(16));
 	net.push_back(new ActivationLayer("relu"));
 	net.push_back(new PoolLayer(Size(2,2),Size(2,2)));
+	*/
 	net.push_back(new FlattenLayer());
 	net.push_back(new DenseLayer(84));
 	net.push_back(new ActivationLayer("sigmoid"));
@@ -72,8 +73,9 @@ void train(ConvNet& net, int lim){
 			cout << "TRAINING ... " << i << endl;
 		//}
 		auto& Yp = net.FF(X);
-		//cout << "YP: " << Yp[0].t() << endl;
-		//cout << "YL " << Y[0].t() << endl;
+		//namedPrint(Yp[0]);
+		//namedPrint(Y[0]);
+
 		net.BP(Yp,Y);
 	}
 
@@ -108,6 +110,7 @@ void test(ConvNet& net){
 		Size y;
 		Size t;
 		auto& Yp = net.FF(X);
+		Yp[0].set_sync(false); //--> to force sync
 		//namedPrint(Y[0]);
 		//namedPrint(Yp[0]);
 		Yp[0].max(&y);

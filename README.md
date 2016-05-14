@@ -54,7 +54,7 @@ Features :
 
 90% Accuracy on MNIST Data
 
-![Loss](images/error.png)
+![Loss](images/loss.png)
 
 Training Loss. The network doesn't improve since ~10000 iterations.
 

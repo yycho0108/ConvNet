@@ -15,6 +15,15 @@ std::ostream& operator<<(std::ostream& os, Matrix& m){
 	return os;
 }
 
+bool isnan(Matrix& m){
+	m.sync();
+	for(int i=0;i<m.size().wh;++i){
+		if(isnan(m.data()[i]))
+			return true;
+	}
+	return false;
+}
+
 typedef double (*dfun)(double);
 RandManager Matrix::rnd = RandManager(); //or some smaller value? welp.
 

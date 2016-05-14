@@ -1,6 +1,10 @@
 #include "ConvNet.h"
 
-
+//RMS error
+double RMS(Matrix& m){
+	return sqrt((m%m).avg());
+	//square -> mean -> root
+}
 ConvNet::ConvNet(){
 
 }
@@ -15,6 +19,17 @@ std::vector<Matrix>& ConvNet::FF(std::vector<Matrix>& _I){
 	auto I = &_I; //ptr to vector
 	for(auto& l : L){
 		I = &(l->FF(*I));
+		/* DEBUGGING START*/
+
+		for(auto& m : *I){
+
+			m.set_sync(false);
+			if(isnan(m)){
+				namedPrint(m);
+				throw "FF_NAN!";
+			}
+		}
+		/* DEBUGGING END*/
 		//namedPrint((*I)[0]);
 		//take ptr only, no copy
 	}
@@ -35,6 +50,14 @@ void ConvNet::BP(std::vector<Matrix>& O, std::vector<Matrix>& T){
 	for(auto i = L.rbegin()+1; i != L.rend(); ++i){
 		auto& l = (*i);
 		G = &l->BP(*G);
+
+		for(auto& m : *G){
+			m.set_sync(false);
+			if(isnan(m)){
+				throw "BP_NAN!";
+			}
+		}
+
 		//namedPrint((*G)[0]);
 	}
 

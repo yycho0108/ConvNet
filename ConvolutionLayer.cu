@@ -45,6 +45,7 @@ void correlate(Matrix& I, Matrix& K, Matrix& O) {
 
 __global__ void deconvolve(double* I, double* _G, double* dW, int iw, int ih) {
 	//TODO : current version is likely to be wrong... FIX!!
+	//CURRENTLY OUTPUTS NAN!!
 
 	//w_i,w_j spans to Kernel Dims.
 	auto w_i = blockIdx.y;
@@ -77,12 +78,33 @@ __global__ void deconvolve(double* I, double* _G, double* dW, int iw, int ih) {
 	}
 }
 
+__global__ void deconvolve(double* I, double* _G, double* dW, int r, int w, int h){
+
+	extern __shared__ double ddW[];
+
+	//r = kernel radius
+	auto i = threadIdx.y;
+	auto j = threadIdx.x; // i,j for I[i][j]
+	for(int di=-r;di<=r;++di){
+		for(int dj=-r;dj<=r;++dj){
+			ddW[idx(di+r,dj+r,2*r+1)] += I[idx(i,j,w)] * _G[idx(i+di,j+dj,w)];
+		}
+	}
+
+	__syncthreads();
+
+
+}
 void deconvolve(Matrix& I, Matrix& _G, Matrix& dW) {
+	//TODO : FIX
 	Matrix tmp(I.size()); //make this static, somehow?
 
 	auto s = dW.size().w;
 	auto r = dW.size().w / 2; //assume square kernel, odd-size
 
+	if(I.size().wh > 1024){
+		throw "TOO MANY THREADS!!";
+	}
 	dim3 gridDims(I.size().w, I.size().h, 1); //--> executed throughout I
 	dim3 blockDims(s, s, 1); //--> executed for each pt in kernel
 
@@ -191,20 +213,31 @@ std::vector<Matrix>& ConvolutionLayer::BP(std::vector<Matrix>& _G) {
 		for (int i = 0; i < d_in; ++i) { //for each input channel
 			if (connection[o][i]) { //if the channels are related..
 				G[i] += dG;
-				deconvolve(I[i], _G[o], dW[o]);
+				deconvolve(I[i], _G[o], ddW);
+				dW[o] += ddW; //accum
+				ddW.set_sync(false);
+				namedPrint(ddW);
+				if(isnan(ddW)){
+					throw "CISNAN!";
+				}
 				//dW[o].set_sync(false);
 			}
 		}
 
-		dW[o] = (dW_p[o] * MOMENTUM) + (dW[o] * ETA) //no "gain" implemented yet
-		- (W[o] * DECAY);
+		dW[o] = (dW_p[o] * MOMENTUM)
+				+ (dW[o] * ETA) //no "gain" implemented yet
+				- (W[o] * DECAY);
 
-		dB[o] = (dB_p[o] * MOMENTUM) + (G[o] * ETA) //bias = gradient
-		- (B[o] * DECAY);
+		dB[o] = (dB_p[o] * MOMENTUM)
+				+ (G[o] * ETA) //bias = gradient
+				- (B[o] * DECAY);
 
 		dW[o].copyTo(dW_p[o]);
 		dB[o].copyTo(dB_p[o]);
 
+		if(isnan(dW[o])){
+			throw "DISNAN!";
+		}
 		//dW_p[o] = dW[o];
 		//dB_p[o] = dB[o];
 	}

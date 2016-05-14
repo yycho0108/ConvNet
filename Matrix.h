@@ -109,5 +109,6 @@ public:
 };
 
 std::ostream& operator<<(std::ostream& os, Matrix& m);
+bool isnan(Matrix& m);
 
 #endif /* MATRIX_H_ */

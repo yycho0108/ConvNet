@@ -86,8 +86,13 @@ std::vector<Matrix>& PoolLayer::FF(std::vector<Matrix>& _I){
 
 std::vector<Matrix>& PoolLayer::BP(std::vector<Matrix>& _G){
 	for(int i=0;i<d;++i){
+		//_G[i].set_sync(false);
+		//namedPrint(_G[i]);
 		G[i].zero();
 		invert_pool<<<1,s_out.wh>>>(_G[i].d_data(),G[i].d_data(),SW[i]);
+		//G[i].set_sync(false);
+		//namedPrint(G[i]);
+
 	}
 	return G;
 }

@@ -10,6 +10,8 @@
 #include "curand_kernel.h"
 #include <cassert>
 
+// TODO : optimize for non in-place calculations by setting output ptrs
+
 std::ostream& operator<<(std::ostream& os, Matrix& m){
 	m.print(os);
 	return os;
@@ -76,7 +78,7 @@ __global__ void dotT(double* a, double* b, double* o, int com, int w, int h){
 }
 
 Matrix dot(const Matrix& a, const Matrix& b){
-	//assert(a.size().w == b.size().h);
+	////assert(a.size().w == b.size().h);
 	int com = a.size().w; // == b.size().h;
 	Matrix bT = Matrix::transpose(b);
 	Matrix o(b.size().w, a.size().h);
@@ -137,6 +139,7 @@ Matrix::Matrix(Size s, double* d)
 
 Matrix::Matrix(int w, int h, double* d)
 :s(w,h){
+	//d is host pointer
 
 	int sz = w*h*sizeof(double);
 
@@ -208,33 +211,39 @@ Matrix& Matrix::Matrix::operator=(Matrix&& o){
 }
 
 Matrix& Matrix::operator+=(const Matrix& o){
+	//assert(size() == o.size());
 	add(d_dat,o.d_dat,d_dat,s.wh);
 	synced = false;
 	return *this;
 }
 Matrix& Matrix::operator-=(const Matrix& o){
+	//assert(size() == o.size());
 	sub(d_dat,o.d_dat,d_dat,s.wh);
 	synced = false;
 	return *this;
 }
 
 Matrix& Matrix::operator/=(const Matrix& o){
+	//assert(size() == o.size());
 	div(d_dat,o.d_dat,d_dat,s.wh);
 	synced = false;
 	return *this;
 }
 Matrix& Matrix::operator%=(const Matrix& o){
+	//assert(size() == o.size());
 	mul(d_dat,o.d_dat,d_dat,s.wh);
 	synced = false;
 	return *this;
 }
 
 Matrix& Matrix::operator+=(const Matrix&& o){
+	//assert(size() == o.size());
 	add(d_dat,o.d_dat,d_dat,s.wh);
 	synced = false;
 	return *this;
 }
 Matrix& Matrix::operator-=(const Matrix&& o){
+	//assert(size() == o.size());
 	sub(d_dat,o.d_dat,d_dat,s.wh);
 	synced = false;
 	return *this;
@@ -242,11 +251,13 @@ Matrix& Matrix::operator-=(const Matrix&& o){
 
 
 Matrix& Matrix::operator/=(const Matrix&& o){
+	//assert(size() == o.size());
 	div(d_dat,o.d_dat,d_dat,s.wh);
 	synced = false;
 	return *this;
 }
 Matrix& Matrix::operator%=(const Matrix&& o){
+	//assert(size() == o.size());
 	mul(d_dat,o.d_dat,d_dat,s.wh);
 	synced = false;
 	return *this;
@@ -271,17 +282,20 @@ Matrix& Matrix::operator*=(double o){
 }
 
 Matrix& Matrix::operator/=(double o){
+
 	div(d_dat,o,d_dat,s.wh);
 	synced = false;
 	return *this;
 }
 
 Matrix Matrix::operator+(const Matrix& o) const{
+	//assert(size() == o.size());
 	Matrix m;
 	copyTo(m);
 	return m += o;
 }
 Matrix Matrix::operator-(const Matrix& o) const{
+	//assert(size() == o.size());
 	Matrix m;
 	copyTo(m);
 	return m -= o;
@@ -290,21 +304,25 @@ Matrix Matrix::operator*(const Matrix& o) const{
 	return dot(*this,o);
 }
 Matrix Matrix::operator/(const Matrix& o) const{
+	//assert(size() == o.size());
 	Matrix m;
 	copyTo(m);
 	return m /= o;
 }
 Matrix Matrix::operator%(const Matrix& o) const{
+	//assert(size() == o.size());
 	Matrix m;
 	copyTo(m);
 	return m %= o;
 }
 Matrix Matrix::operator+(const Matrix&& o) const{
+	//assert(size() == o.size());
 	Matrix m;
 	copyTo(m);
 	return m += o;
 }
 Matrix Matrix::operator-(const Matrix&& o) const{
+	//assert(size() == o.size());
 	Matrix m;
 	copyTo(m);
 	return m -= o;
@@ -313,11 +331,13 @@ Matrix Matrix::operator*(const Matrix&& o) const{
 	return dot(*this,o);
 }
 Matrix Matrix::operator/(const Matrix&& o) const{
+	//assert(size() == o.size());
 	Matrix m;
 	copyTo(m);
 	return m /= o;
 }
 Matrix Matrix::operator%(const Matrix&& o) const{
+	//assert(size() == o.size());
 	Matrix m;
 	copyTo(m);
 	return m %= o;

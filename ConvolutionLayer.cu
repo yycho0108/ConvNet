@@ -120,7 +120,6 @@ __global__ void safe_deconvolve(double* I, double* _G, double* dW, int w, int h)
 
 void deconvolve(Matrix& I, Matrix& _G, Matrix& dW) {
 	//TODO : FIX
-	Matrix tmp(I.size()); //make this static, somehow?
 
 	auto s = dW.size().w;
 	auto r = dW.size().w / 2; //assume square kernel, odd-size
@@ -183,8 +182,8 @@ void ConvolutionLayer::setup(Size& _s, int& _d) {
 	for (int o = 0; o < d_out; ++o) {
 		connection[o] = new bool[d_in];
 		for (int i = 0; i < d_in; ++i) {
-			connection[o][i] = true;
-			//connection[o][i] = ((o % 3) == (i % 3));
+			//connection[o][i] = true;
+			connection[o][i] = ((o % 3) == (i % 3));
 			//partial connection
 		}
 	}
@@ -198,7 +197,7 @@ std::vector<Matrix>& ConvolutionLayer::FF(std::vector<Matrix>& _I) {
 		_I[i].copyTo(I[i]);
 	}
 
-	Matrix tmp = Matrix(W[0].size());
+	Matrix tmp = Matrix(O[0].size());
 
 	for (int o = 0; o < d_out; ++o) {
 		O[o].zero(); //set to zero
@@ -211,7 +210,6 @@ std::vector<Matrix>& ConvolutionLayer::FF(std::vector<Matrix>& _I) {
 		}
 		O[o] += B[o]; //add bias
 	}
-
 	return O;
 }
 
@@ -242,9 +240,16 @@ std::vector<Matrix>& ConvolutionLayer::BP(std::vector<Matrix>& _G) {
 				G[i] += dG;
 				deconvolve(I[i], _G[o], ddW);
 				dW[o] += ddW; //accum
-				/*ddW.set_sync(false);
+
+				/*I[i].set_sync(false);
+				_G[o].set_sync(false);
+				ddW.set_sync(false);
+
+				namedPrint(I[i]);
+				namedPrint(_G[o]);
 				namedPrint(ddW);
-				if(isnan(ddW)){
+				*/
+				/*if(isnan(ddW)){
 					throw "CISNAN!";
 				}*/
 				//dW[o].set_sync(false);
@@ -256,8 +261,8 @@ std::vector<Matrix>& ConvolutionLayer::BP(std::vector<Matrix>& _G) {
 				- (W[o] * DECAY);
 
 		dB[o] = (dB_p[o] * MOMENTUM)
-				+ (G[o] * ETA) //bias = gradient
-				- (B[o] * DECAY);
+				+ (_G[o] * ETA); //bias = gradient
+				//- (B[o] * DECAY);
 
 		dW[o].copyTo(dW_p[o]);
 		dB[o].copyTo(dB_p[o]);

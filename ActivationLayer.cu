@@ -122,7 +122,7 @@ std::vector<Matrix>& ActivationLayer::FF(std::vector<Matrix>& _I) {
 		//namedPrint(I[i]);
 		//sigmoid<<<1,s.wh>>>(I[i].d_data(),O[i].d_data());
 		activate(I[i], O[i], f);
-		O[i].set_sync(false); //O[i] is not synced anymore!
+		//O[i].set_sync(false); //indicate O[i] is not synced anymore!
 		//namedPrint(O[i]);
 
 	}
@@ -134,6 +134,8 @@ std::vector<Matrix>& ActivationLayer::BP(std::vector<Matrix>& _G) {
 	for (int i = 0; i < d; ++i) {
 		activate(I[i], tmp, f_d);
 		G[i] = _G[i] % tmp;
+		//G[i].set_sync(false);
+		//namedPrint(G[i]);
 		//or consider setting G[i].dat as destination of mul.
 	}
 	return G;

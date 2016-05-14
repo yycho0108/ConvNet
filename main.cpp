@@ -25,9 +25,11 @@ void setup(ConvNet& net){
 	net.push_back(new ConvolutionLayer(12));
 	net.push_back(new ActivationLayer("relu"));
 	net.push_back(new PoolLayer(Size(2,2),Size(2,2)));
+
 	net.push_back(new ConvolutionLayer(16));
 	net.push_back(new ActivationLayer("relu"));
 	net.push_back(new PoolLayer(Size(2,2),Size(2,2)));
+
 	net.push_back(new FlattenLayer());
 	net.push_back(new DenseLayer(84));
 	net.push_back(new ActivationLayer("sigmoid"));

@@ -185,13 +185,22 @@ Matrix::~Matrix() {
 }
 
 Matrix& Matrix::Matrix::operator=(const Matrix& o){
-	throw "Don't Come HERE!!";
-	/* problematic for memory management*/
-	s = o.s;
-	dat = o.dat;
-	d_dat = o.d_dat;
+	int sz = o.s.wh * sizeof(double);
 
+	if(s.wh == o.s.wh){
+		//no need to reallocate...
+		s = o.s; //reset size
+	}else{
+		cudaFree(d_dat);
+		free(dat);
+		cudaMalloc(&d_dat,sz);
+		dat = (double*) malloc(sz);
+	}
+
+	cudaMemcpy(d_dat,o.d_dat,sz,cudaMemcpyDeviceToDevice);
+	memcpy(dat,o.dat,sz);
 	synced = o.synced;
+
 	return *this;
 }
 
@@ -454,9 +463,8 @@ void Matrix::eye(){
 }
 
 void Matrix::rand(){
-	rnd.rand(d_dat,s.wh);
+	rnd.rand(d_dat,s.wh); // 0 ~ 1
 	*this -= 0.5;
-	*this /= 10.0;
 	synced = false;
 }
 

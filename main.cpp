@@ -63,12 +63,13 @@ void train(ConvNet& net, int lim){
 		if(++i > lim || !keepTraining)
 			return;
 
-		//if(!(i%100)){
-			cout << "TRAINING ... " << i << endl;
-		//}
 		auto& Yp = net.FF(X);
-		Yp[0].set_sync(false);
-		namedPrint(Yp[0]);
+
+		if(!(i%100)){
+			cout << "TRAINING ... " << i << endl;
+			Yp[0].set_sync(false);
+			namedPrint(Yp[0]);
+		}
 		//namedPrint(Y[0]);
 
 		net.BP(Yp,Y);
@@ -92,7 +93,6 @@ void test(ConvNet& net){
 
 	int cor = 0;
 	int inc = 0;
-
 	while(tester.read(X[0],Y[0]) && keepTesting){ //read into X,Y
 		//namedPrint(X[0]);
 

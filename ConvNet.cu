@@ -31,7 +31,7 @@ std::vector<Matrix>& ConvNet::FF(std::vector<Matrix>& _I){
 			}
 		}*/
 		/* DEBUGGING END*/
-		//(*I)[0].set_sync(false);
+		(*I)[0].set_sync(false);
 		//namedPrint((*I)[0]);
 		//take ptr only, no copy
 	}

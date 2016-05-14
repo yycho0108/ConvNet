@@ -119,7 +119,6 @@ __global__ void safe_deconvolve(double* I, double* _G, double* dW, int w, int h)
 }
 
 void deconvolve(Matrix& I, Matrix& _G, Matrix& dW) {
-	//TODO : FIX
 
 	auto s = dW.size().w;
 	auto r = dW.size().w / 2; //assume square kernel, odd-size
@@ -233,7 +232,7 @@ std::vector<Matrix>& ConvolutionLayer::BP(std::vector<Matrix>& _G) {
 	for (int o = 0; o < d_out; ++o) { //for each output channel(depth):
 		dW[o].zero();
 
-		correlate(_G[o], W[o], dG); //TODO:check correlation works
+		correlate(_G[o], W[o], dG);
 
 		for (int i = 0; i < d_in; ++i) { //for each input channel
 			if (connection[o][i]) { //if the channels are related..

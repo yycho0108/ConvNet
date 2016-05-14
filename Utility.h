@@ -21,23 +21,23 @@
 #define hline() \
 	std::cout << "------------------" << std::endl;
 
-extern void convolve_d(double* i, double* k, double* o,
+extern void convolve_d(const double* i, const double* k, double* o,
 		int n, int m, int r);
 
-extern void convolve(double* i, double* k, double* o,
+extern void convolve(const double* i, const double* k, double* o,
 		int n, int m, int r);
 
-extern void correlate_d(double* d_i, double* d_k, double* d_o,
+extern void correlate_d(const double* d_i, const double* d_k, double* d_o,
 		int n, int m, int r);
 
-extern void add(double* a, double* b, double* o, int n);
-extern void sub(double* a, double* b, double* o, int n);
-extern void mul(double* a, double* b, double* o, int n);
-extern void div(double* a, double* b, double* o, int n);
-extern void add(double* a, double b, double* o, int n);
-extern void sub(double* a, double b, double* o, int n);
-extern void mul(double* a, double b, double* o, int n);
-extern void div(double* a, double b, double* o, int n);
-extern void abs(double* in, double* out, int n);
+extern void add(const double* a, const double* b, double* o, int n);
+extern void sub(const double* a, const double* b, double* o, int n);
+extern void mul(const double* a, const double* b, double* o, int n);
+extern void div(const double* a, const double* b, double* o, int n);
+extern void add(const double* a, const double b, double* o, int n);
+extern void sub(const double* a, const double b, double* o, int n);
+extern void mul(const double* a, const double b, double* o, int n);
+extern void div(const double* a, const double b, double* o, int n);
+extern void abs(const double* in, double* out, int n);
 
 #endif /* UTILITY_H_ */

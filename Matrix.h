@@ -34,37 +34,37 @@ public:
 	Matrix& operator=(const Matrix&);
 	Matrix& operator=(Matrix&&);
 
-	Matrix& operator+=(Matrix&);
-	Matrix& operator-=(Matrix&);
-	Matrix& operator/=(Matrix&);
-	Matrix& operator%=(Matrix&); //elem-wise mul
+	Matrix& operator+=(const Matrix&);
+	Matrix& operator-=(const Matrix&);
+	Matrix& operator/=(const Matrix&);
+	Matrix& operator%=(const Matrix&); //elem-wise mul
 
-	Matrix& operator+=(Matrix&&);
-	Matrix& operator-=(Matrix&&);
-	Matrix& operator/=(Matrix&&);
-	Matrix& operator%=(Matrix&&); //elem-wise mul
+	Matrix& operator+=(const Matrix&&);
+	Matrix& operator-=(const Matrix&&);
+	Matrix& operator/=(const Matrix&&);
+	Matrix& operator%=(const Matrix&&); //elem-wise mul
 
 	Matrix& operator+=(double);
 	Matrix& operator-=(double);
 	Matrix& operator*=(double);
 	Matrix& operator/=(double);
 
-	Matrix operator+(Matrix&);
-	Matrix operator-(Matrix&);
-	Matrix operator*(Matrix&); //dot product
-	Matrix operator/(Matrix&);
-	Matrix operator%(Matrix&); //elem-wise mul
+	Matrix operator+(const Matrix&) const;
+	Matrix operator-(const Matrix&) const;
+	Matrix operator*(const Matrix&) const; //dot product
+	Matrix operator/(const Matrix&) const;
+	Matrix operator%(const Matrix&) const; //elem-wise mul
 
-	Matrix operator+(Matrix&&);
-	Matrix operator-(Matrix&&);
-	Matrix operator*(Matrix&&); //dot product
-	Matrix operator/(Matrix&&);
-	Matrix operator%(Matrix&&); //elem-wise mul
+	Matrix operator+(const Matrix&&) const;
+	Matrix operator-(const Matrix&&) const;
+	Matrix operator*(const Matrix&&) const; //dot product
+	Matrix operator/(const Matrix&&) const;
+	Matrix operator%(const Matrix&&) const; //elem-wise mul
 
-	Matrix operator+(double);
-	Matrix operator-(double);
-	Matrix operator*(double);
-	Matrix operator/(double);
+	Matrix operator+(double) const;
+	Matrix operator-(double) const;
+	Matrix operator*(double) const;
+	Matrix operator/(double) const;
 
 
 	double operator()(int,int);
@@ -82,7 +82,7 @@ public:
 	void rand(); //set to rand
 	void abs(); //set to positive
 
-	void copyTo(Matrix& m); //copy to data, check for nullptr
+	void copyTo(Matrix& m) const; //copy to data, check for nullptr
 	void transpose();
 
 	static Matrix zeros(int w, int h);
@@ -94,8 +94,8 @@ public:
 	static Matrix rand(int w, int h);
 	static Matrix rand(Size s);
 
-	static Matrix transpose(Matrix&);
-	static Matrix abs(Matrix&);
+	static Matrix transpose(const Matrix&);
+	static Matrix abs(const Matrix&);
 
 	void sync(); //synchronizes device-host memory
 	void sync_r(); //host to device
@@ -103,9 +103,9 @@ public:
 	void print(std::ostream& s); //visualizing Matrix Data
 
 	//getters
-	Size size();
-	double* data(); //cpu data
-	double* d_data(); //device data (gpu)
+	Size size() const;
+	double* data() const; //cpu data
+	double* d_data() const; //device data (gpu)
 };
 
 std::ostream& operator<<(std::ostream& os, Matrix& m);

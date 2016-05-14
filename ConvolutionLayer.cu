@@ -45,7 +45,7 @@ void correlate(Matrix& I, Matrix& K, Matrix& O) {
 
 __global__ void deconvolve(double* I, double* _G, double* dW, int iw, int ih) {
 	//TODO : current version is likely to be wrong... FIX!!
-	//CURRENTLY OUTPUTS NAN!!
+	//CURRENTLY OUTPUTS NAN!! race-condition thing?
 
 	//w_i,w_j spans to Kernel Dims.
 	auto w_i = blockIdx.y;
@@ -92,9 +92,32 @@ __global__ void deconvolve(double* I, double* _G, double* dW, int r, int w, int 
 	}
 
 	__syncthreads();
+}
 
+__global__ void safe_deconvolve(double* I, double* _G, double* dW, int w, int h){
+	//int kw = blockDim.x;
+	//int kh = blockDim.y; //kernel dimensions
+	int r = blockDim.x / 2; //radius of kernel
+	int ki = threadIdx.y;
+	int kj = threadIdx.x;
+
+	auto i_start = max(0, r - ki);
+	auto j_start = max(0, r - kj);
+
+	auto i_end = min(h, h + r - ki);
+	auto j_end = min(w, w + r - kj);
+
+	auto index = idx(ki,kj,2*r+1);
+
+	dW[index] = 0;
+	for(int i=i_start; i < i_end; ++i){
+		for(int j=j_start; j < j_end; ++j){
+			dW[index] += I[idx(i,j,w)] * _G[idx(i+(ki-r),j+(kj-r),w)];
+		}
+	}
 
 }
+
 void deconvolve(Matrix& I, Matrix& _G, Matrix& dW) {
 	//TODO : FIX
 	Matrix tmp(I.size()); //make this static, somehow?
@@ -105,12 +128,16 @@ void deconvolve(Matrix& I, Matrix& _G, Matrix& dW) {
 	if(I.size().wh > 1024){
 		throw "TOO MANY THREADS!!";
 	}
-	dim3 gridDims(I.size().w, I.size().h, 1); //--> executed throughout I
+
+	/*dim3 gridDims(I.size().w, I.size().h, 1); //--> executed throughout I
 	dim3 blockDims(s, s, 1); //--> executed for each pt in kernel
 
 	deconvolve<<<gridDims, blockDims>>>(I.d_data(), _G.d_data(), dW.d_data(),
-			I.size().h, I.size().w); //G-begin index
+			I.size().w, I.size().h); //G-begin index
+	*/
 
+	dim3 blockDims(s,s);
+	safe_deconvolve<<<1,blockDims>>>(I.d_data(),_G.d_data(),dW.d_data(),I.size().w, I.size().h);
 }
 
 ConvolutionLayer::ConvolutionLayer(int d_out) : //TODO : accept kernel size
@@ -215,11 +242,11 @@ std::vector<Matrix>& ConvolutionLayer::BP(std::vector<Matrix>& _G) {
 				G[i] += dG;
 				deconvolve(I[i], _G[o], ddW);
 				dW[o] += ddW; //accum
-				ddW.set_sync(false);
+				/*ddW.set_sync(false);
 				namedPrint(ddW);
 				if(isnan(ddW)){
 					throw "CISNAN!";
-				}
+				}*/
 				//dW[o].set_sync(false);
 			}
 		}
@@ -235,9 +262,9 @@ std::vector<Matrix>& ConvolutionLayer::BP(std::vector<Matrix>& _G) {
 		dW[o].copyTo(dW_p[o]);
 		dB[o].copyTo(dB_p[o]);
 
-		if(isnan(dW[o])){
+		/*if(isnan(dW[o])){
 			throw "DISNAN!";
-		}
+		}*/
 		//dW_p[o] = dW[o];
 		//dB_p[o] = dB[o];
 	}

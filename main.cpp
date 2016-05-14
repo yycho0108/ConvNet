@@ -40,6 +40,9 @@ void setup(ConvNet& net){
 
 
 void train(ConvNet& net, int lim){
+
+	std::ofstream ferr("error.csv");
+
 	std::cout << "TRAINING FOR : " << lim << std::endl;
 	keepTraining = true;
 
@@ -62,11 +65,17 @@ void train(ConvNet& net, int lim){
 			cout << "TRAINING ... " << i << endl;
 		//}
 		auto& Yp = net.FF(X);
-		//namedPrint(Yp[0]);
+		Yp[0].set_sync(false);
+		namedPrint(Yp[0]);
 		//namedPrint(Y[0]);
 
 		net.BP(Yp,Y);
+		ferr << net.error() << '\n';
 	}
+
+	ferr << std::endl;
+	ferr.flush();
+	ferr.close();
 
 	keepTraining = false;
 }
@@ -99,9 +108,11 @@ void test(ConvNet& net){
 		Size y;
 		Size t;
 		auto& Yp = net.FF(X);
+
 		Yp[0].set_sync(false); //--> to force sync
+		namedPrint(Yp[0]);
+
 		//namedPrint(Y[0]);
-		//namedPrint(Yp[0]);
 		Yp[0].max(&y);
 		Y[0].max(&t);
 		//namedPrint(y);

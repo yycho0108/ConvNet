@@ -16,7 +16,7 @@ class ConvNet{
 
 private:
 	std::vector<Layer*> L; //layers. set as ptr, to avoid copying-syntax when pushing
-
+	double loss; //most recent loss
 public:
 	ConvNet();
 	~ConvNet();
@@ -26,7 +26,7 @@ public:
 
 	void setup(Size s, int d); //size & depth of input
 	void push_back(Layer*&& l);
-
+	double error();
 	//void save(std::string dir);//save directory
 	//void load(std::string dir);
 };

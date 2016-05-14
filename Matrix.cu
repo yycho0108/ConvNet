@@ -75,7 +75,7 @@ __global__ void dotT(double* a, double* b, double* o, int com, int w, int h){
 	// c = mat of n x m
 }
 
-Matrix dot(Matrix& a, Matrix& b){
+Matrix dot(const Matrix& a, const Matrix& b){
 	//assert(a.size().w == b.size().h);
 	int com = a.size().w; // == b.size().h;
 	Matrix bT = Matrix::transpose(b);
@@ -207,46 +207,46 @@ Matrix& Matrix::Matrix::operator=(Matrix&& o){
 	return *this;
 }
 
-Matrix& Matrix::operator+=(Matrix& o){
+Matrix& Matrix::operator+=(const Matrix& o){
 	add(d_dat,o.d_dat,d_dat,s.wh);
 	synced = false;
 	return *this;
 }
-Matrix& Matrix::operator-=(Matrix& o){
+Matrix& Matrix::operator-=(const Matrix& o){
 	sub(d_dat,o.d_dat,d_dat,s.wh);
 	synced = false;
 	return *this;
 }
 
-Matrix& Matrix::operator/=(Matrix& o){
+Matrix& Matrix::operator/=(const Matrix& o){
 	div(d_dat,o.d_dat,d_dat,s.wh);
 	synced = false;
 	return *this;
 }
-Matrix& Matrix::operator%=(Matrix& o){
+Matrix& Matrix::operator%=(const Matrix& o){
 	mul(d_dat,o.d_dat,d_dat,s.wh);
 	synced = false;
 	return *this;
 }
 
-Matrix& Matrix::operator+=(Matrix&& o){
+Matrix& Matrix::operator+=(const Matrix&& o){
 	add(d_dat,o.d_dat,d_dat,s.wh);
 	synced = false;
 	return *this;
 }
-Matrix& Matrix::operator-=(Matrix&& o){
+Matrix& Matrix::operator-=(const Matrix&& o){
 	sub(d_dat,o.d_dat,d_dat,s.wh);
 	synced = false;
 	return *this;
 }
 
 
-Matrix& Matrix::operator/=(Matrix&& o){
+Matrix& Matrix::operator/=(const Matrix&& o){
 	div(d_dat,o.d_dat,d_dat,s.wh);
 	synced = false;
 	return *this;
 }
-Matrix& Matrix::operator%=(Matrix&& o){
+Matrix& Matrix::operator%=(const Matrix&& o){
 	mul(d_dat,o.d_dat,d_dat,s.wh);
 	synced = false;
 	return *this;
@@ -276,72 +276,72 @@ Matrix& Matrix::operator/=(double o){
 	return *this;
 }
 
-Matrix Matrix::operator+(Matrix& o){
+Matrix Matrix::operator+(const Matrix& o) const{
 	Matrix m;
 	copyTo(m);
 	return m += o;
 }
-Matrix Matrix::operator-(Matrix& o){
+Matrix Matrix::operator-(const Matrix& o) const{
 	Matrix m;
 	copyTo(m);
 	return m -= o;
 }
-Matrix Matrix::operator*(Matrix& o){
+Matrix Matrix::operator*(const Matrix& o) const{
 	return dot(*this,o);
 }
-Matrix Matrix::operator/(Matrix& o){
+Matrix Matrix::operator/(const Matrix& o) const{
 	Matrix m;
 	copyTo(m);
 	return m /= o;
 }
-Matrix Matrix::operator%(Matrix& o){
+Matrix Matrix::operator%(const Matrix& o) const{
 	Matrix m;
 	copyTo(m);
 	return m %= o;
 }
-Matrix Matrix::operator+(Matrix&& o){
+Matrix Matrix::operator+(const Matrix&& o) const{
 	Matrix m;
 	copyTo(m);
 	return m += o;
 }
-Matrix Matrix::operator-(Matrix&& o){
+Matrix Matrix::operator-(const Matrix&& o) const{
 	Matrix m;
 	copyTo(m);
 	return m -= o;
 }
-Matrix Matrix::operator*(Matrix&& o){
+Matrix Matrix::operator*(const Matrix&& o) const{
 	return dot(*this,o);
 }
-Matrix Matrix::operator/(Matrix&& o){
+Matrix Matrix::operator/(const Matrix&& o) const{
 	Matrix m;
 	copyTo(m);
 	return m /= o;
 }
-Matrix Matrix::operator%(Matrix&& o){
+Matrix Matrix::operator%(const Matrix&& o) const{
 	Matrix m;
 	copyTo(m);
 	return m %= o;
 }
 
-Matrix Matrix::operator+(double o){
+Matrix Matrix::operator+(double o) const{
 	Matrix m;
 	copyTo(m);
 	return m += o;
 }
 
-Matrix Matrix::operator-(double o){
+Matrix Matrix::operator-(double o) const{
 	Matrix m;
 	copyTo(m);
 	return m -= o;
 }
 
-Matrix Matrix::operator*(double o){
+Matrix Matrix::operator*(double o) const{
 	Matrix m;
 	copyTo(m);
 	return m *= o;
 }
 
-Matrix Matrix::operator/(double o){
+Matrix Matrix::operator/(double o) const{
 	Matrix m;
 	copyTo(m);
 	return m /= o;
@@ -443,7 +443,7 @@ void Matrix::rand(){
 void Matrix::abs(){
 	::abs(d_dat,d_dat,s.wh);
 }
-void Matrix::copyTo(Matrix& m){
+void Matrix::copyTo(Matrix& m) const{
 	auto sz = s.wh*sizeof(double);
 
 	if(m.d_dat == nullptr || size() != m.size()){
@@ -509,7 +509,7 @@ Matrix Matrix::rand(int w, int h){
 	return m;
 }
 
-Matrix Matrix::transpose(Matrix& I){
+Matrix Matrix::transpose(const Matrix& I){
 	//TODO : Improve transposition logic
 	auto s = I.size();
 
@@ -531,7 +531,7 @@ Matrix Matrix::transpose(Matrix& I){
 	}
 	return O;
 }
-Matrix Matrix::abs(Matrix& src){
+Matrix Matrix::abs(const Matrix& src){
 	Matrix dst;
 	src.copyTo(dst);
 	dst.abs();
@@ -552,6 +552,7 @@ void Matrix::sync_r(){
 void Matrix::set_sync(bool s){
 	synced = s;
 }
+
 void Matrix::print(std::ostream& out){
 	sync();
 	int h = s.h;
@@ -564,16 +565,16 @@ void Matrix::print(std::ostream& out){
 	}
 	out << std::endl;
 }
-Size Matrix::size(){
+Size Matrix::size() const{
 	return s;
 }
 
-double* Matrix::data(){
+double* Matrix::data() const{
 	return dat;
 	//host data (cpu);
 }
 
-double* Matrix::d_data(){
+double* Matrix::d_data() const{
 	return d_dat;
 	//device data (gpu)
 }

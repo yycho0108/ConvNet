@@ -127,6 +127,34 @@ __global__ void _transpose(double* I, double* O, int w, int h){
 		O[idx(j,i,h)] = I[idx(i,j,w)];
 }
 
+__global__ void _lt(double* I, double t, double* O, int n){
+	int i = blockIdx.x * blockDim.x + threadIdx.x;
+	if (i < n)
+		O[i] = (I[i] < t);
+}
+__global__ void _le(double* I, double t, double* O, int n){
+	int i = blockIdx.x * blockDim.x + threadIdx.x;
+	if (i < n)
+		O[i] = (I[i] <= t);
+}
+
+__global__ void _gt(double* I, double t, double* O, int n){
+	int i = blockIdx.x * blockDim.x + threadIdx.x;
+	if (i < n)
+		O[i] = (I[i] > t);
+}
+
+__global__ void _ge(double* I, double t, double* O, int n){
+	int i = blockIdx.x * blockDim.x + threadIdx.x;
+	if (i < n)
+		O[i] = (I[i] >= t);
+}
+
+__global__ void _eq(double* I, double t, double* O, int n){
+	int i = blockIdx.x * blockDim.x + threadIdx.x;
+	if (i < n)
+		O[i] = (I[i] == t);
+}
 
 Matrix::Matrix():d_dat(nullptr),dat(nullptr),s(0,0),synced(false){
 	//nothing!
@@ -376,6 +404,37 @@ Matrix Matrix::operator/(double o) const{
 	return m /= o;
 }
 
+Matrix Matrix::operator<(double val) const{
+	Matrix m(this->s);
+	int nb = (s.wh + 255) / 256; //# of blocks
+	_lt<<<nb,256>>>(d_dat,val,m.d_dat,s.wh);
+	return m;
+}
+Matrix Matrix::operator<=(double val) const{
+	Matrix m(this->s);
+	int nb = (s.wh + 255) / 256; //# of blocks
+	_le<<<nb,256>>>(d_dat,val,m.d_dat,s.wh);
+	return m;
+}
+Matrix Matrix::operator>(double val) const{
+	Matrix m(this->s);
+	int nb = (s.wh + 255) / 256; //# of blocks
+	_gt<<<nb,256>>>(d_dat,val,m.d_dat,s.wh);
+	return m;
+}
+Matrix Matrix::operator>=(double val) const{
+	Matrix m(this->s);
+	int nb = (s.wh + 255) / 256; //# of blocks
+	_ge<<<nb,256>>>(d_dat,val,m.d_dat,s.wh);
+	return m;
+}
+Matrix Matrix::operator==(double val) const{
+	// TODO : give small buffer for equality(eps)?
+	Matrix m(this->s);
+	int nb = (s.wh + 255) / 256; //# of blocks
+	_eq<<<nb,256>>>(d_dat,val,m.d_dat,s.wh);
+	return m;
+}
 double Matrix::operator()(int i, int j){
 	sync();
 	return dat[idx(i,j,s.w)];
@@ -463,11 +522,31 @@ void Matrix::eye(){
 }
 
 void Matrix::rand(){
-	rnd.rand(d_dat,s.wh); // 0 ~ 1
-	*this -= 0.5;
+	rnd.randn(d_dat,s.wh,0.0,0.1);
+	//rnd.rand(d_dat,s.wh); // 0 ~ 1
+	//*this -= 0.5;
 	synced = false;
 }
 
+void Matrix::randn(double mean, double stddev){
+	rnd.randn(d_dat,s.wh,mean,stddev);
+	//rnd.rand(d_dat,s.wh); // 0 ~ 1
+	//*this -= 0.5;
+	synced = false;
+}
+
+void Matrix::randu(double min, double max){
+	rnd.randu(d_dat,s.wh);
+
+	if(min != 0.0 || max != 1.0){
+		*this *= (max-min);
+		*this -= min;
+	}
+
+	//rnd.rand(d_dat,s.wh); // 0 ~ 1
+	//*this -= 0.5;
+	synced = false;
+}
 void Matrix::abs(){
 	::abs(d_dat,d_dat,s.wh);
 }

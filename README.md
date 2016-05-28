@@ -15,6 +15,8 @@ Features :
 	- [ ] __restrict__ Optimization
 	- [ ] Save-Load Function
 	- [ ] Optimize for non in-place calculations by setting output ptr
+	- [ ] Concurrent Execution Optimization
+	- [ ] Increase Block Size to Hide Latency
 
 #Layers :
 - [x] Activation Layer

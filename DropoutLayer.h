@@ -3,13 +3,31 @@
 
 //TODO : Implement
 
-/*#include "Layer.h"
+#include "Layer.h"
+
 
 class DropoutLayer : public Layer{
-public:
-	DropoutLayer();
-	virtual ~DropoutLayer();
-};
-*/
-#endif
+private:
+	int d;
+	double p; //dropout probability
+	Size s;
+	static bool enabled;
 
+	std::vector<Matrix> I;
+	std::vector<Matrix> O;
+	std::vector<Matrix> G; //maybe not necessary? idk...
+	std::vector<Matrix> Mask;
+public:
+	DropoutLayer(double p=0.5);
+	~DropoutLayer();
+	virtual void setup(Size& s, int& d);
+
+	virtual std::vector<Matrix>& FF(std::vector<Matrix>& I);
+	virtual std::vector<Matrix>& BP(std::vector<Matrix>& G);
+	virtual void update();
+	static void enable(bool);
+	//no need to update since to trainable parameter
+	//virtual void save(FileStorage& f, int i);
+	//virtual void load(FileStorage& f, int i);
+};
+#endif

@@ -24,17 +24,19 @@ void setup(ConvNet& net){
 
 	net.push_back(new ConvolutionLayer(12));
 	net.push_back(new ActivationLayer("relu"));
+	net.push_back(new DropoutLayer(0.5));
 	net.push_back(new PoolLayer(Size(2,2),Size(2,2)));
 
 	net.push_back(new ConvolutionLayer(16));
 	net.push_back(new ActivationLayer("relu"));
+	net.push_back(new DropoutLayer(0.5));
 	net.push_back(new PoolLayer(Size(2,2),Size(2,2)));
 
 	net.push_back(new FlattenLayer());
 	net.push_back(new DenseLayer(84));
-	net.push_back(new ActivationLayer("sigmoid"));
+	net.push_back(new ActivationLayer("relu"));
 	net.push_back(new DenseLayer(10));
-	net.push_back(new ActivationLayer("sigmoid"));
+	//net.push_back(new ActivationLayer("sigmoid"));
 	net.push_back(new SoftMaxLayer());
 
 	net.setup(Size(28,28), 1);
@@ -42,7 +44,7 @@ void setup(ConvNet& net){
 
 
 void train(ConvNet& net, int lim){
-
+	DropoutLayer::enable(true);
 	std::ofstream ferr("error.csv");
 
 	std::cout << "TRAINING FOR : " << lim << std::endl;
@@ -67,8 +69,8 @@ void train(ConvNet& net, int lim){
 
 		if(!(i%100)){
 			cout << "TRAINING ... " << i << endl;
-			Yp[0].set_sync(false);
-			namedPrint(Yp[0]);
+			//Yp[0].set_sync(false);
+			//namedPrint(Yp[0]);
 		}
 		//namedPrint(Y[0]);
 
@@ -84,6 +86,7 @@ void train(ConvNet& net, int lim){
 }
 
 void test(ConvNet& net){
+	DropoutLayer::enable(false);
 	keepTesting = true;
 
 	Parser tester("data/testData","data/testLabel");

@@ -6,6 +6,7 @@ double RMS(Matrix& m){
 	return sqrt((m%m).avg());
 	//square -> mean -> root
 }
+
 ConvNet::ConvNet(){
 
 }

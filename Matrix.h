@@ -66,6 +66,12 @@ public:
 	Matrix operator*(double) const;
 	Matrix operator/(double) const;
 
+	/* INDICES SELECTION */
+	Matrix operator<(double) const;
+	Matrix operator<=(double) const;
+	Matrix operator>(double) const;
+	Matrix operator>=(double) const;
+	Matrix operator==(double) const;
 
 	double operator()(int,int);
 
@@ -80,6 +86,9 @@ public:
 	void one(); //set to zero
 	void eye(); //set to identity
 	void rand(); //set to rand
+	void randn(double mean=0.0, double stddev=1.0); //set to rand
+	void randu(double min=0.0, double max=1.0); //set to rand
+
 	void abs(); //set to positive
 
 	void copyTo(Matrix& m) const; //copy to data, check for nullptr

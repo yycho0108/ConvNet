@@ -19,6 +19,15 @@ void RandManager::randu(double* arr, int n){
 	curandGenerateUniformDouble(rgen,arr,n);
 }
 
-void RandManager::randn(double* arr, int n, double mean=0.0, double stddev=1.0){
-	curandGenerateNormalDouble(rgen,arr,n,mean,stddev);
+void RandManager::randn(double* arr, int n, double mean, double stddev){
+	if(n%2 != 0){ //odd
+		double* ptr;
+		cudaMalloc(&ptr, (n+1)*sizeof(double));
+		curandGenerateNormalDouble(rgen,ptr,(n+1),mean,stddev);
+		cudaMemcpy(arr,ptr,n*sizeof(double),cudaMemcpyDeviceToDevice);
+		cudaFree(ptr);
+	}else{
+
+		curandGenerateNormalDouble(rgen,arr,n,mean,stddev);
+	}
 }

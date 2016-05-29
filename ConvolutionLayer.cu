@@ -285,16 +285,18 @@ std::vector<Matrix>& ConvolutionLayer::FF(std::vector<Matrix>& _I) {
 		for (int i = 0; i < d_in; ++i) {
 			if (connection[o][i]) {
 				//TODO : this seems like it can be parallelized, like ""per each output layer...""
-				convolve(_I[i], W[o], tmp,&streams_i[i]);
+				//convolve(_I[i], W[o], tmp,&streams_i[i]);
+				convolve(_I[i], W[o], tmp);
+
 				O[o] += tmp;
 			}
 		}
 		O[o] += B[o]; //add bias
 	}
 
-	for(int i=0;i<d_in;++i){
+	/*for(int i=0;i<d_in;++i){
 		cudaStreamSynchronize(streams_i[i]);
-	}
+	}*/
 	return O;
 }
 

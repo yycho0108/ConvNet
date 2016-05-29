@@ -15,7 +15,6 @@ private:
 	cudaStream_t* streams;
 	std::vector<Matrix>* pI;
 	std::vector<Matrix> O;
-	std::vector<Matrix> G; //maybe not necessary? idk...
 public:
 	ActivationLayer(std::string _f);
 	~ActivationLayer();

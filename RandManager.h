@@ -19,7 +19,7 @@ public:
 	~RandManager();
 	void rand(double* a, int n);
 	void randu(double* a, int n);
-	void randn(double* a, int n, double mean, double stddev);
+	void randn(double* a, int n, double mean=0.0, double stddev=1.0);
 
 };
 

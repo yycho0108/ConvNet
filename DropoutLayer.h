@@ -14,7 +14,6 @@ private:
 	static bool enabled;
 	cudaStream_t* streams;
 	std::vector<Matrix> O;
-	std::vector<Matrix> G; //maybe not necessary? idk...
 	std::vector<Matrix> Mask;
 public:
 	DropoutLayer(double p=0.5);

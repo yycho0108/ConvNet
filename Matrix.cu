@@ -522,16 +522,13 @@ void Matrix::eye(){
 }
 
 void Matrix::rand(){
-	//rnd.randn(d_dat,s.wh,0.0,0.1);
-	rnd.randu(d_dat,s.wh);
-	*this -= 0.5;
-	//rnd.rand(d_dat,s.wh); // 0 ~ 1
-	//*this -= 0.5;
+	rnd.randn(d_dat,s.wh,0.0,0.1);
 	synced = false;
 }
 
 void Matrix::randn(double mean, double stddev){
 	rnd.randn(d_dat,s.wh,mean,stddev);
+
 	//rnd.rand(d_dat,s.wh); // 0 ~ 1
 	//*this -= 0.5;
 	synced = false;

@@ -145,15 +145,15 @@ __global__ void rapid_deconvolve(double* I, double* _G, double* dW, int w, int h
 	auto j_start = max(0, r - kj);
 	auto i_end = min(h, h + r - ki);
 	auto j_end = min(w, w + r - kj);
-
 	int j = threadIdx.x;
 	int i = threadIdx.y;
-	int submat_w = j_end - j_start;
+
+	auto index = idx(i,j,w);
 
 	if(i_start<i && i<i_end && j_start<j && j<j_end)
-		ddW[idx(i,j,w)] = I[idx(i,j,w)] * _G[idx(i+(ki-r),j+(kj-r),w)];
+		ddW[index] = I[index] * _G[idx(i+(ki-r),j+(kj-r),w)];
 	else
-		ddW[idx(i,j,w)] = 0; //out_of_bounds
+		ddW[index] = 0; //out_of_bounds
 
 	__syncthreads();
 
@@ -165,7 +165,6 @@ __global__ void rapid_deconvolve(double* I, double* _G, double* dW, int w, int h
 	{
 	  int halfPoint = (nTotalThreads >> 1);	// divide by two
 	  // only the first half of the threads will be active.
-	 int index = idx(i,j,w);
 	  if (index < halfPoint)
 	  {
 	   int index2 = index + halfPoint;
@@ -176,7 +175,11 @@ __global__ void rapid_deconvolve(double* I, double* _G, double* dW, int w, int h
 	  // Reducing the binary tree size by two:
 	  nTotalThreads = halfPoint;
 	}
-	dW[idx(ki,kj,kw)] = ddW[0]; //0 = final accumulated index
+
+	if(index == 0){
+		//only 1 thread will write to dW
+		dW[idx(ki,kj,kw)] = ddW[0]; //0 = final accumulated index
+	}
 
 }
 void deconvolve(Matrix& I, Matrix& _G, Matrix& dW) {

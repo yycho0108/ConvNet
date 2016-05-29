@@ -2,6 +2,7 @@
 from matplotlib import pyplot as plt
 import numpy as np
 import csv
+import sys
 from collections import Counter
 
 sectorSize = 100
@@ -34,14 +35,10 @@ def plotcsv(name):
 
         #plt.plot(time,fit[0]*time**3+fit[1]*time**2+fit[2]*time+fit[3],color='red')
         plt.title(name + ': over {} iterations'.format(len(data)))
+        plt.savefig(name + '.png')
         plt.show()
 
-        if name == 'test':
-            cnt = Counter([float(e) for e in data])
-            k,v = zip(*cnt.items())
-            plt.bar(k,v,width=10)
-            plt.xticks(k)
-            plt.title('Highest Tiles')
-            plt.show()
+if len(sys.argv) > 1:
+    sectorSize = int(sys.argv[1])
 
 plotcsv('error')

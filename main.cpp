@@ -36,7 +36,7 @@ void setup(ConvNet& net){
 	net.push_back(new DenseLayer(84));
 	net.push_back(new ActivationLayer("sigmoid"));
 	net.push_back(new DenseLayer(10));
-	//net.push_back(new ActivationLayer("sigmoid"));
+	net.push_back(new ActivationLayer("sigmoid"));
 	net.push_back(new SoftMaxLayer());
 
 	net.setup(Size(28,28), 1);

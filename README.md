@@ -30,7 +30,7 @@ Features :
 	- [ ] *VALID* Convolution
 	- [ ] *FULL* Convolution
 - [x] Dense Layer
-- [ ] Dropout Layer
+- [x] Dropout Layer
 - [x] Flatten Layer
 - [x] Pool Layer
 - [x] Output Layer
@@ -56,9 +56,9 @@ Features :
 
 90% Accuracy on MNIST Data
 
-![Loss](images/loss.png)
+![Loss](images/error.png)
 
-Training Loss. The network doesn't improve since ~10000 iterations.
+Training Loss. The network improves slowly ever since ~12000th iterations.
 
 ![Result](images/result.png)
 

@@ -164,8 +164,8 @@ __global__ void _convolve(const double* d_i, const double* d_k, double* d_o,int 
 	for(int ki=-r;ki<=r;++ki){
 		for(int kj=-r;kj<=r;++kj){
 			if(inbound(i+ki,j+kj,h,w)){
-				d_o[idx(i,j,h)] +=
-					d_i[idx(i+ki,j+kj,h)]
+				d_o[idx(i,j,w)] +=
+					d_i[idx(i+ki,j+kj,w)]
 					* d_k[idx(r-ki,r-kj,2*r+1)]; //flip here if correlation
 			}
 			//effectively zero-padding

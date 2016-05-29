@@ -8,8 +8,8 @@ class FlattenLayer : public Layer {
 private:
 	int d_in;
 	Size s_in,s_out;
+	cudaStream_t* streams;
 
-	std::vector<Matrix> I;
 	std::vector<Matrix> O;
 	std::vector<Matrix> G;
 public:

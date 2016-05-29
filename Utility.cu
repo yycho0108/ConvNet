@@ -200,18 +200,18 @@ __global__ void _correlate(const double* d_i, const double* d_k, double* d_o,int
 }
 void convolve_d(const double* d_i, const double* d_k, double* d_o,
 	//if all ptrs are in gpu
-		int w, int h, int r){
+		int w, int h, int r,cudaStream_t* stream){
 	dim3 g(1,1);
 	dim3 b(w,h);
-	_convolve<<<g,b>>>(d_i,d_k,d_o,r);
+	_convolve<<<g,b,0,*stream>>>(d_i,d_k,d_o,r);
 }
 
 void correlate_d(const double* d_i, const double* d_k, double* d_o,
 	//if all ptrs are in gpu
-		int w, int h, int r){
+		int w, int h, int r,cudaStream_t* stream){
 	dim3 g(1,1);
 	dim3 b(w,h);
-	_correlate<<<g,b>>>(d_i,d_k,d_o,r);
+	_correlate<<<g,b,0,*stream>>>(d_i,d_k,d_o,r);
 }
 
 void convolve(const double* i, const double* k, double* o,

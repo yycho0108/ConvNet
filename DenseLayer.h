@@ -6,11 +6,11 @@
 class DenseLayer : public Layer{
 private:
 	int s_i,s_o; //no depth. just no.
-
+	cudaStream_t stream;
 	Matrix W, dW, dW_p,
 		   B, dB, dB_p;
 
-	std::vector<Matrix> I, O, G;
+	std::vector<Matrix> *pI, O, G;
 public:
 	DenseLayer(int s_out); //and possibly also optimization as arg.
 	~DenseLayer();

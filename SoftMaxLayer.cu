@@ -40,15 +40,13 @@ SoftMaxLayer::~SoftMaxLayer() {
 void SoftMaxLayer::setup(Size& s, int& d) {
 	this->s = s;
 	this->d = d;
-	I.push_back(Matrix(s));
 	O.push_back(Matrix(s));
 	G.push_back(Matrix(s));
 }
 
 std::vector<Matrix>& SoftMaxLayer::FF(std::vector<Matrix>& _I) {
 	for (int i = 0; i < d; ++i) {
-		_I[i].copyTo(I[i]);
-		softMax(I[i], O[i]);
+		softMax(_I[i], O[i]);
 	}
 	return O;
 }

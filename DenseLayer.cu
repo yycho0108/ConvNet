@@ -27,24 +27,27 @@ void DenseLayer::setup(Size& s, int& d) {
 
 	//placeholders
 
-	I.push_back(Matrix());
+	//I.push_back(Matrix());
 	O.push_back(Matrix());
 	G.push_back(Matrix());
 
 	s = Size(1,s_o);
 	d = 1;
+	cudaStreamCreate(&stream);
 }
 
 std::vector<Matrix>& DenseLayer::FF(std::vector<Matrix>& _I) {
+	pI = &_I;
+	//_I[0].copyTo(I[0]);
 
-	_I[0].copyTo(I[0]);
 	//namedPrint(I[0]);
-	O[0] = W * I[0] + B;
+	O[0] = W * _I[0] + B;
 	//namedPrint(O[0]);
 	return O; //no activation! add it separately.
 }
 
 std::vector<Matrix>& DenseLayer::BP(std::vector<Matrix>& _G) {
+	std::vector<Matrix>& I = *pI;
 	//TODO : implement fancy optimizations
 	Matrix Wt = Matrix::transpose(W);
 	G[0] = Wt * _G[0];

@@ -7,12 +7,12 @@ class PoolLayer : public Layer{
 private:
 	Size s_in, s_out;
 	Size s_s,s_p; //pooling size, stride size
-
 	int d;
+	cudaStream_t* streams;
+
 	std::vector<std::vector<std::vector<Size>>> S; //switches
 
 	std::vector<int*> SW; //Switch lists
-	std::vector<Matrix> I;
 	std::vector<Matrix> O;
 	std::vector<Matrix> G;
 

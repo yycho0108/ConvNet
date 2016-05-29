@@ -7,28 +7,28 @@ DropoutLayer::DropoutLayer(double p):p(p){
 }
 
 DropoutLayer::~DropoutLayer(){
-
+	delete[] streams;
 }
 void DropoutLayer::setup(Size& _s, int& _d) {
 	s = _s;
 	d = _d;
 
+	streams = new cudaStream_t[d];
 	for (int i = 0; i < d; ++i) {
-		I.push_back(Matrix(s));
 		G.push_back(Matrix(s));
 		O.push_back(Matrix(s));
 		Mask.push_back(Matrix(s));
+		cudaStreamCreate(&streams[i]);
 	}
-
 }
 
 std::vector<Matrix>& DropoutLayer::FF(std::vector<Matrix>& _I) {
 	if(enabled){
 		for (int i = 0; i < d; ++i) {
-				_I[i].copyTo(I[i]);
+				//_I[i].copyTo(I[i]);
 				Mask[i].randu(0.0,1.0);
 				Mask[i] = (Mask[i] < p); //binary threshold
-				O[i] = I[i] % Mask[i];
+				O[i] = _I[i] % Mask[i];
 			}
 		return O;
 	}else{

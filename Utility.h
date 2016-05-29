@@ -8,6 +8,10 @@
 #ifndef UTILITY_H_
 #define UTILITY_H_
 
+#include <cuda_runtime.h>
+typedef cudaStream_t cudaStream_t;
+
+
 #define idx(i,j,w) ((i)*(w)+(j))
 #define inbound(i,j,n,m) (0<=(i) && 0<=(j) && (i)<(n) && (j)<(m))
 #define LOOP(start,end,content) \
@@ -22,13 +26,13 @@
 	std::cout << "------------------" << std::endl;
 
 extern void convolve_d(const double* i, const double* k, double* o,
-		int n, int m, int r);
+		int n, int m, int r, cudaStream_t* stream=nullptr);
 
 extern void convolve(const double* i, const double* k, double* o,
 		int n, int m, int r);
 
 extern void correlate_d(const double* d_i, const double* d_k, double* d_o,
-		int n, int m, int r);
+		int n, int m, int r, cudaStream_t* stream=nullptr);
 
 extern void add(const double* a, const double* b, double* o, int n);
 extern void sub(const double* a, const double* b, double* o, int n);

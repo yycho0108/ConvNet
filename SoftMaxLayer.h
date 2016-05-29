@@ -8,7 +8,6 @@ class SoftMaxLayer: public Layer{
 private:
 	Size s;
 	int d;
-	std::vector<Matrix> I;
 	std::vector<Matrix> O;
 	std::vector<Matrix> G;
 public:

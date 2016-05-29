@@ -19,7 +19,9 @@ private:
 	Size s;
 	int d_in, d_out;
 	bool** connection;
-	std::vector<Matrix> W, B, dW, dW_p, dB, dB_p, I, O, G;
+	std::vector<Matrix> W, B, dW, dW_p, dB, dB_p, *pI, O, G;
+	cudaStream_t* streams_i;
+	cudaStream_t* streams_o;
 
 public:
 	ConvolutionLayer(int d_out=1); //# kernels

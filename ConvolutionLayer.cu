@@ -11,22 +11,22 @@ __device__ int d_abs(int x) {
 	return x > 0 ? x : -x;
 }
 
-void convolve(Matrix& I, Matrix& K, Matrix& O) {
+void convolve(Matrix& I, Matrix& K, Matrix& O, cudaStream_t* stream=nullptr) {
 	//TODO : support different modes
 	int w = I.size().w;
 	int h = I.size().h;
 	int r = K.size().w / 2;
 
-	convolve_d(I.d_data(), K.d_data(), O.d_data(), w, h, r);
+	convolve_d(I.d_data(), K.d_data(), O.d_data(), w, h, r, stream);
 }
 
-void correlate(Matrix& I, Matrix& K, Matrix& O) {
+void correlate(Matrix& I, Matrix& K, Matrix& O, cudaStream_t* stream=nullptr) {
 	//TODO : support different modes
 	int w = I.size().w;
 	int h = I.size().h;
 	int r = K.size().w / 2;
 
-	correlate_d(I.d_data(), K.d_data(), O.d_data(), w, h, r);
+	correlate_d(I.d_data(), K.d_data(), O.d_data(), w, h, r,stream);
 }
 
 /*__device__ void submat_mul(double* a, double* b, double* o,
@@ -118,6 +118,67 @@ __global__ void safe_deconvolve(double* I, double* _G, double* dW, int w, int h)
 
 }
 
+__device__ int NearestPowerOf2 (int n)
+{
+  if (!n) return n;  //(0 == 2^0)
+
+  int x = 1;
+  while(x < n)
+    {
+      x <<= 1;
+    }
+  return x;
+}
+
+__global__ void rapid_deconvolve(double* I, double* _G, double* dW, int w, int h){
+	extern __shared__ double ddW[]; //dims same as I
+
+	int kw = gridDim.x;
+	int kh = gridDim.y;
+
+	int kj = blockIdx.x;
+	int ki = blockIdx.y;
+	int r = kw / 2;
+	//each block takes dW[ki][kj]
+
+	auto i_start = max(0, r - ki);
+	auto j_start = max(0, r - kj);
+	auto i_end = min(h, h + r - ki);
+	auto j_end = min(w, w + r - kj);
+
+	int j = threadIdx.x;
+	int i = threadIdx.y;
+	int submat_w = j_end - j_start;
+
+	if(i_start<i && i<i_end && j_start<j && j<j_end)
+		ddW[idx(i,j,w)] = I[idx(i,j,w)] * _G[idx(i+(ki-r),j+(kj-r),w)];
+	else
+		ddW[idx(i,j,w)] = 0; //out_of_bounds
+
+	__syncthreads();
+
+	//now accumulate ddW...
+	auto n = blockDim.x * blockDim.y;
+	int nTotalThreads = NearestPowerOf2(n);	// Total number of threads, rounded up to the next power of two
+
+	while(nTotalThreads > 1)
+	{
+	  int halfPoint = (nTotalThreads >> 1);	// divide by two
+	  // only the first half of the threads will be active.
+	 int index = idx(i,j,w);
+	  if (index < halfPoint)
+	  {
+	   int index2 = index + halfPoint;
+	   if (index2 < n)
+	      ddW[index] += ddW[index2];
+	  }
+	  __syncthreads();
+	  // Reducing the binary tree size by two:
+	  nTotalThreads = halfPoint;
+	}
+	dW[idx(ki,kj,kw)] = ddW[0]; //0 = final accumulated index
+
+}
 void deconvolve(Matrix& I, Matrix& _G, Matrix& dW) {
 
 	auto s = dW.size().w;
@@ -134,8 +195,14 @@ void deconvolve(Matrix& I, Matrix& _G, Matrix& dW) {
 			I.size().w, I.size().h); //G-begin index
 	*/
 
-	dim3 blockDims(s,s);
-	safe_deconvolve<<<1,blockDims>>>(I.d_data(),_G.d_data(),dW.d_data(),I.size().w, I.size().h);
+	//WORKING CODE ...
+	//dim3 blockDims(s,s);
+	//safe_deconvolve<<<1,blockDims>>>(I.d_data(),_G.d_data(),dW.d_data(),I.size().w, I.size().h);
+
+	//TRYING
+	dim3 gridDims(s,s);
+	dim3 blockDims(I.size().w, I.size().h);
+	rapid_deconvolve<<<gridDims,blockDims,I.size().wh * sizeof(double)>>>(I.d_data(),_G.d_data(),dW.d_data(),I.size().w,I.size().h);
 }
 
 ConvolutionLayer::ConvolutionLayer(int d_out) : //TODO : accept kernel size
@@ -149,6 +216,10 @@ ConvolutionLayer::~ConvolutionLayer() {
 		delete connection[i];
 	}
 	delete[] connection;
+
+	delete[] streams_i;
+	delete[] streams_o;
+
 }
 
 void ConvolutionLayer::setup(Size& _s, int& _d) {
@@ -157,10 +228,13 @@ void ConvolutionLayer::setup(Size& _s, int& _d) {
 	s = _s;
 	d_in = _d;
 
+	streams_i = new cudaStream_t[d_in];
 	for (int i = 0; i < d_in; ++i) {
-		I.push_back(Matrix(s));
+		//I.push_back(Matrix(s));
+		cudaStreamCreate(&streams_i[i]);
 	}
 
+	streams_o = new cudaStream_t[d_out];
 	for (int o = 0; o < d_out; ++o) {
 		O.push_back(Matrix(s)); //same size
 		W.push_back(Matrix::rand(5, 5)); //5,5 = kernel size
@@ -174,6 +248,8 @@ void ConvolutionLayer::setup(Size& _s, int& _d) {
 		B.push_back(Matrix::zeros(s));
 		dB.push_back(Matrix::zeros(s));
 		dB_p.push_back(Matrix::zeros(s)); //previous dB
+
+		cudaStreamCreate(&streams_o[o]);
 	}
 
 	connection = new bool*[d_out];
@@ -188,13 +264,19 @@ void ConvolutionLayer::setup(Size& _s, int& _d) {
 	}
 	_s = s; //same size, at least for current convolution function.
 	_d = d_out;
+
+
 }
 
 std::vector<Matrix>& ConvolutionLayer::FF(std::vector<Matrix>& _I) {
-
-	for (int i = 0; i < d_in; ++i) {
-		_I[i].copyTo(I[i]);
+	pI = &_I;
+	/*
+	 *
+	 *for (int i = 0; i < d_in; ++i) {
+		_I[i].copyTo(I[i],&streams_i[i]);
+		//_I[i].copyTo(I[i]);
 	}
+	 */
 
 	Matrix tmp = Matrix(O[0].size());
 
@@ -203,16 +285,21 @@ std::vector<Matrix>& ConvolutionLayer::FF(std::vector<Matrix>& _I) {
 		for (int i = 0; i < d_in; ++i) {
 			if (connection[o][i]) {
 				//TODO : this seems like it can be parallelized, like ""per each output layer...""
-				convolve(I[i], W[o], tmp);
+				convolve(_I[i], W[o], tmp,&streams_i[i]);
 				O[o] += tmp;
 			}
 		}
 		O[o] += B[o]; //add bias
 	}
+
+	for(int i=0;i<d_in;++i){
+		cudaStreamSynchronize(streams_i[i]);
+	}
 	return O;
 }
 
 std::vector<Matrix>& ConvolutionLayer::BP(std::vector<Matrix>& _G) {
+	std::vector<Matrix>& I = *pI;
 	auto iw = s.w;
 	auto ih = s.h;
 
@@ -231,8 +318,14 @@ std::vector<Matrix>& ConvolutionLayer::BP(std::vector<Matrix>& _G) {
 
 	for (int o = 0; o < d_out; ++o) { //for each output channel(depth):
 		dW[o].zero();
+		correlate(_G[o], W[o], dG, &streams_o[o]);
+	}
 
-		correlate(_G[o], W[o], dG);
+	for(int o=0;o<d_out;++o){
+		cudaStreamSynchronize(streams_o[o]);
+	}
+
+	for (int o = 0; o < d_out; ++o) { //for each output channel(depth):
 
 		for (int i = 0; i < d_in; ++i) { //for each input channel
 			if (connection[o][i]) { //if the channels are related..
@@ -254,6 +347,7 @@ std::vector<Matrix>& ConvolutionLayer::BP(std::vector<Matrix>& _G) {
 				//dW[o].set_sync(false);
 			}
 		}
+
 
 		dW[o] = (dW_p[o] * MOMENTUM)
 				+ (dW[o] * ETA) //no "gain" implemented yet

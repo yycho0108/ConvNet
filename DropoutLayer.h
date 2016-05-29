@@ -12,8 +12,7 @@ private:
 	double p; //dropout probability
 	Size s;
 	static bool enabled;
-
-	std::vector<Matrix> I;
+	cudaStream_t* streams;
 	std::vector<Matrix> O;
 	std::vector<Matrix> G; //maybe not necessary? idk...
 	std::vector<Matrix> Mask;

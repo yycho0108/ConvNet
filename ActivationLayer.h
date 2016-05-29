@@ -12,8 +12,8 @@ private:
 	Size s;
 	dfun f;
 	dfun f_d;
-
-	std::vector<Matrix> I;
+	cudaStream_t* streams;
+	std::vector<Matrix>* pI;
 	std::vector<Matrix> O;
 	std::vector<Matrix> G; //maybe not necessary? idk...
 public:

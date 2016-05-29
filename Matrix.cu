@@ -522,7 +522,9 @@ void Matrix::eye(){
 }
 
 void Matrix::rand(){
-	rnd.randn(d_dat,s.wh,0.0,0.1);
+	//rnd.randn(d_dat,s.wh,0.0,0.1);
+	rnd.randu(d_dat,s.wh);
+	*this -= 0.5;
 	//rnd.rand(d_dat,s.wh); // 0 ~ 1
 	//*this -= 0.5;
 	synced = false;
@@ -550,7 +552,7 @@ void Matrix::randu(double min, double max){
 void Matrix::abs(){
 	::abs(d_dat,d_dat,s.wh);
 }
-void Matrix::copyTo(Matrix& m) const{
+void Matrix::copyTo(Matrix& m, cudaStream_t* stream) const{
 	auto sz = s.wh*sizeof(double);
 
 	if(m.d_dat == nullptr || size() != m.size()){
@@ -562,7 +564,13 @@ void Matrix::copyTo(Matrix& m) const{
 
 	m.s = s;
 	memcpy(m.dat,dat,sz);
-	cudaMemcpy(m.d_dat,d_dat,sz,cudaMemcpyDeviceToDevice);
+
+	if(stream){
+		cudaMemcpyAsync(m.d_dat,d_dat,sz,cudaMemcpyDeviceToDevice,*stream);
+	}else{
+		cudaMemcpy(m.d_dat,d_dat,sz,cudaMemcpyDeviceToDevice);
+	}
+
 	m.synced = synced;
 }
 

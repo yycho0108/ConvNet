@@ -46,7 +46,7 @@ PoolLayer::~PoolLayer(){
 	for(int i=0;i<d;++i){
 		cudaFree(SW[i]);
 	}
-
+	delete[] streams;
 }
 
 void PoolLayer::setup(Size& s, int& d){
@@ -58,11 +58,15 @@ void PoolLayer::setup(Size& s, int& d){
 	s_out = Size(w,h);
 
 	SW.resize(d);
+
+	streams = new cudaStream_t[d];
 	for(int i=0;i<d;++i){
 		cudaMalloc(&SW[i],sizeof(int) * w*h);
-		I.push_back(Matrix(s_in)); //doesn't need to allocate memory here
+		//I.push_back(Matrix(s_in)); //doesn't need to allocate memory here
 		G.push_back(Matrix(s_in));
 		O.push_back(Matrix(s_out));
+		cudaStreamCreate(&streams[i]);
+
 	}
 
 	s = s_out;
@@ -73,8 +77,8 @@ std::vector<Matrix>& PoolLayer::FF(std::vector<Matrix>& _I){
 	dim3 blockDims(s_out.w, s_out.h);
 
 	for(int i=0;i<d;++i){
-		_I[i].copyTo(I[i]);
-		pool<<<1, blockDims>>>(I[i].d_data(),O[i].d_data(),SW[i],
+		//_I[i].copyTo(I[i]);
+		pool<<<1, blockDims>>>(_I[i].d_data(),O[i].d_data(),SW[i],
 				s_in.w, s_in.h,
 				s_s.w, s_s.h,
 				s_p.w, s_p.h

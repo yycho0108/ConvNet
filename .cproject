@@ -106,7 +106,7 @@
 								<option id="nvcc.linker.option.libs.224646109" name="Libraries (-l)" superClass="nvcc.linker.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="curand"/>
 								</option>
-								<option id="nvcc.linker.option.cudart.360121634" superClass="nvcc.linker.option.cudart" value="nvcc.linker.option.cudart.static" valueType="enumerated"/>
+								<option id="nvcc.linker.option.cudart.360121634" name="CUDA Runtime Library:" superClass="nvcc.linker.option.cudart" value="nvcc.linker.option.cudart.static" valueType="enumerated"/>
 								<inputType id="nvcc.linker.input.385030667" superClass="nvcc.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>

@@ -101,27 +101,30 @@ ActivationLayer::ActivationLayer(std::string _f) {
 }
 
 ActivationLayer::~ActivationLayer(){
-
+	delete[] streams;
 }
 
 void ActivationLayer::setup(Size& _s, int& _d) {
 	s = _s;
 	d = _d;
 
+
+	streams = new cudaStream_t[d];
 	for (int i = 0; i < d; ++i) {
-		I.push_back(Matrix(s));
+		//I.push_back(Matrix(s));
 		G.push_back(Matrix(s));
 		O.push_back(Matrix(s));
+		cudaStreamCreate(&streams[i]);
 	}
-
 }
 
 std::vector<Matrix>& ActivationLayer::FF(std::vector<Matrix>& _I) {
+	pI = &_I;
 	for (int i = 0; i < d; ++i) {
-		_I[i].copyTo(I[i]);
+		//_I[i].copyTo(I[i]);
 		//namedPrint(I[i]);
 		//sigmoid<<<1,s.wh>>>(I[i].d_data(),O[i].d_data());
-		activate(I[i], O[i], f);
+		activate(_I[i], O[i], f);
 		//O[i].set_sync(false); //indicate O[i] is not synced anymore!
 		//namedPrint(O[i]);
 
@@ -131,6 +134,7 @@ std::vector<Matrix>& ActivationLayer::FF(std::vector<Matrix>& _I) {
 
 std::vector<Matrix>& ActivationLayer::BP(std::vector<Matrix>& _G) {
 	Matrix tmp(s);
+	std::vector<Matrix>& I = *pI;
 	for (int i = 0; i < d; ++i) {
 		activate(I[i], tmp, f_d);
 		G[i] = _G[i] % tmp;

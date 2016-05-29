@@ -11,10 +11,9 @@
 #include "Size.h"
 #include "Utility.h"
 #include "RandManager.h"
-
 #include <iostream>
-//#include <functional>
 
+//#include <functional>
 
 struct Matrix {
 private:
@@ -91,7 +90,8 @@ public:
 
 	void abs(); //set to positive
 
-	void copyTo(Matrix& m) const; //copy to data, check for nullptr
+	void copyTo(Matrix& m, cudaStream_t* stream=nullptr) const; //copy to data, check for nullptr
+
 	void transpose();
 
 	static Matrix zeros(int w, int h);

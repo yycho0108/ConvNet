@@ -5,7 +5,7 @@ FlattenLayer::FlattenLayer() {
 }
 
 FlattenLayer::~FlattenLayer() {
-
+	delete[] streams;
 }
 
 void FlattenLayer::setup(Size& s, int& d) {
@@ -14,9 +14,11 @@ void FlattenLayer::setup(Size& s, int& d) {
 	s_out = Size(1, d * s.wh);
 
 	O.push_back(Matrix(s_out));
+
+	streams = new cudaStream_t[d_in];
 	for (int i = 0; i < d_in; ++i) {
-		I.push_back(Matrix(s_in)); //preallocating
 		G.push_back(Matrix(s_in));
+		cudaStreamCreate(&streams[i]);
 	}
 
 	s = s_out;
@@ -28,10 +30,12 @@ std::vector<Matrix>& FlattenLayer::FF(std::vector<Matrix>& _I) {
 	auto sz = s_in.wh * sizeof(double);
 
 	for (int i = 0; i < d_in; ++i) {
-		_I[i].copyTo(I[i]);
-
-		cudaMemcpy(o_ptr + i*s_in.wh, I[i].d_data(), sz,
-				cudaMemcpyDeviceToDevice);
+		//cudaMemcpy(o_ptr + i*s_in.wh, _I[i].d_data(), sz, cudaMemcpyDeviceToDevice);
+		cudaMemcpyAsync(o_ptr + i*s_in.wh, _I[i].d_data(), sz,
+				cudaMemcpyDeviceToDevice,streams[i]);
+	}
+	for(int i=0;i<d_in;++i){
+		cudaStreamSynchronize(streams[i]);
 	}
 	return O;
 }
@@ -41,8 +45,14 @@ std::vector<Matrix>& FlattenLayer::BP(std::vector<Matrix>& _G) {
 	auto sz = s_in.wh * sizeof(double);
 
 	for (int i = 0; i < d_in; ++i) {
-		cudaMemcpy(G[i].d_data(), g_ptr + i*s_in.wh, sz,
-				cudaMemcpyDeviceToDevice);
+		//cudaMemcpy(G[i].d_data(), g_ptr + i*s_in.wh, sz,
+		//				cudaMemcpyDeviceToDevice);
+		cudaMemcpyAsync(G[i].d_data(), g_ptr + i*s_in.wh, sz,
+				cudaMemcpyDeviceToDevice,streams[i]);
+	}
+
+	for(int i=0;i<d_in;++i){
+		cudaStreamSynchronize(streams[i]);
 	}
 
 	return G;

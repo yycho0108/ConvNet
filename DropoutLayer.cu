@@ -26,8 +26,8 @@ std::vector<Matrix>& DropoutLayer::FF(std::vector<Matrix>& _I) {
 		for (int i = 0; i < d; ++i) {
 				//_I[i].copyTo(I[i]);
 				Mask[i].randu(0.0,1.0);
-				Mask[i] = (Mask[i] < p); //binary threshold
-				O[i] = _I[i] % Mask[i];
+				Mask[i] = (Mask[i] > p); //binary threshold
+				O[i] = (_I[i] % Mask[i]) * 1.0/(1.0-p); //reinforced to have consistent mean
 			}
 		return O;
 	}else{
@@ -39,7 +39,6 @@ std::vector<Matrix>& DropoutLayer::BP(std::vector<Matrix>& _G) {
 	if(enabled){
 		for (int i = 0; i < d; ++i) {
 			_G[i] %= Mask[i];
-			_G[i] /= p;
 		}
 	}
 	return _G;

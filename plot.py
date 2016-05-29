@@ -4,7 +4,7 @@ import numpy as np
 import csv
 from collections import Counter
 
-sectorSize = 1000
+sectorSize = 100
 
 last = False
 

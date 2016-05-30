@@ -66,9 +66,6 @@ void ConvNet::BP(std::vector<Matrix>& O, std::vector<Matrix>& T){
 		//namedPrint((*G)[0]);
 	}
 
-	for(auto& l : L){
-		l->update();
-	}
 }
 
 
@@ -79,12 +76,15 @@ void ConvNet::push_back(Layer*&& l){
 }
 
 void ConvNet::setup(Size s, int d){
-
 	for(auto& l : L){
 		l->setup(s,d);
 	}
 }
-
+void ConvNet::update(){
+	for(auto& l : L){
+		l->update();
+	}
+}
 double ConvNet::error(){
 	return loss;
 }

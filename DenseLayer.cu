@@ -25,6 +25,9 @@ void DenseLayer::setup(Size& s, int& d) {
 	dW_p = Matrix::zeros(s_i, s_o);
 	dB_p = Matrix::zeros(1, s_o);
 
+	dW_t = Matrix::zeros(s_i, s_o);
+	dB_t = Matrix::zeros(1, s_o);
+
 	//placeholders
 
 	//I.push_back(Matrix());
@@ -51,16 +54,22 @@ std::vector<Matrix>& DenseLayer::BP(std::vector<Matrix>& _G) {
 	//TODO : implement fancy optimizations
 	Matrix Wt = Matrix::transpose(W);
 	G[0] = Wt * _G[0];
-	dW = (dW_p * MOMENTUM) // momentum * previous dW
+	/*dW = (dW_p * MOMENTUM) // momentum * previous dW
 			+ (_G[0] * Matrix::transpose(I[0]) * ETA) // learning rate * weight error
 			- (W * DECAY); //decay * weight
 
 	dB = (dB_p * MOMENTUM)
 		+ (_G[0] * ETA)
-		- (B * DECAY);
+		- (B * DECAY)*/
+	dW = _G[0] * Matrix::transpose(I[0]);
+	dW_t += dW;
+	dB_t += _G[0];
 
-	dW.copyTo(dW_p);
-	dB.copyTo(dB_p);
+	W += dW * ETA;
+	B += _G[0] * ETA; //individual updates
+
+	//dW.copyTo(dW_p);
+	//dB.copyTo(dB_p);
 
 	//dW_p = dW;
 	//dB_p = dB;
@@ -69,6 +78,15 @@ std::vector<Matrix>& DenseLayer::BP(std::vector<Matrix>& _G) {
 }
 
 void DenseLayer::update(){
-	W += dW;
-	B += dB;
+	W += (dW_p * MOMENTUM) + \
+		 (dW_t * ETA) - \
+		 (W * DECAY);
+	B += (dB_p * MOMENTUM) + \
+		 (dW_t * ETA);
+
+	dW_t.copyTo(dW_p);
+	dB_t.copyTo(dB_p);
+
+	dW_t.zero();
+	dB_t.zero();
 }

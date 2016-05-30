@@ -26,6 +26,7 @@ public:
 
 	void setup(Size s, int d); //size & depth of input
 	void push_back(Layer*&& l);
+	void update();
 	double error();
 	//void save(std::string dir);//save directory
 	//void load(std::string dir);

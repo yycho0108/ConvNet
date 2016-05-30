@@ -17,7 +17,7 @@ std::ostream& operator<<(std::ostream& os, Matrix& m){
 	return os;
 }
 
-bool isnan(Matrix& m){
+bool isNaN(Matrix& m){
 	m.sync();
 	for(int i=0;i<m.size().wh;++i){
 		if(isnan(m.data()[i]))

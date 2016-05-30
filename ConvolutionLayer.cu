@@ -241,16 +241,19 @@ void ConvolutionLayer::setup(Size& _s, int& _d) {
 	for (int o = 0; o < d_out; ++o) {
 		O.push_back(Matrix(s)); //same size
 		W.push_back(Matrix::rand(5, 5)); //5,5 = kernel size
-		//namedPrint(W[o]);
-		//Bias depends on output matrix size,
-		//Which is equivalent to the input matrix size (in case of this convolution)
+
 		dW.push_back(Matrix::zeros(5, 5));
 		dW_p.push_back(Matrix::zeros(5, 5)); //previous dW
+		dW_t.push_back(Matrix::zeros(5,5)); //total over mini-batch
 
 		G.push_back(Matrix::zeros(s));
+
+		//Bias depends on output matrix size,
+		//Which is equivalent to the input matrix size (in case of this convolution)
 		B.push_back(Matrix::zeros(s));
 		dB.push_back(Matrix::zeros(s));
 		dB_p.push_back(Matrix::zeros(s)); //previous dB
+		dB_t.push_back(Matrix::zeros(s)); // total over mini-batch
 
 		cudaStreamCreate(&streams_o[o]);
 	}
@@ -323,7 +326,6 @@ std::vector<Matrix>& ConvolutionLayer::BP(std::vector<Matrix>& _G) {
 
 	for (int o = 0; o < d_out; ++o) { //for each output channel(depth):
 		dW[o].zero();
-		correlate(_G[o], W[o], dG, &streams_o[o]);
 	}
 
 	for(int o=0;o<d_out;++o){
@@ -331,7 +333,7 @@ std::vector<Matrix>& ConvolutionLayer::BP(std::vector<Matrix>& _G) {
 	}
 
 	for (int o = 0; o < d_out; ++o) { //for each output channel(depth):
-
+		correlate(_G[o], W[o], dG);
 		for (int i = 0; i < d_in; ++i) { //for each input channel
 			if (connection[o][i]) { //if the channels are related..
 				G[i] += dG;
@@ -354,16 +356,28 @@ std::vector<Matrix>& ConvolutionLayer::BP(std::vector<Matrix>& _G) {
 		}
 
 
-		dW[o] = (dW_p[o] * MOMENTUM)
+		/*dW[o] = (dW_p[o] * MOMENTUM)
 				+ (dW[o] * ETA) //no "gain" implemented yet
 				- (W[o] * DECAY);
 
 		dB[o] = (dB_p[o] * MOMENTUM)
 				+ (_G[o] * ETA); //bias = gradient
 				//- (B[o] * DECAY);
+		*/
+		//_G[o].copyTo(dB[o]);
 
-		dW[o].copyTo(dW_p[o]);
-		dB[o].copyTo(dB_p[o]);
+		//dB[o] = _G[o];
+		//dW[o].copyTo(dW_p[o]);
+		//dB[o].copyTo(dB_p[o]);
+
+		//accumulate to total
+
+		dW_t[o] += dW[o];
+		dB_t[o] += _G[o];
+
+		//individual updates
+		W[o] += dW[o] * ETA;
+		B[o] += _G[o] * ETA;
 
 		/*if(isnan(dW[o])){
 			throw "DISNAN!";
@@ -375,8 +389,17 @@ std::vector<Matrix>& ConvolutionLayer::BP(std::vector<Matrix>& _G) {
 }
 
 void ConvolutionLayer::update() {
+	//minibatch-like
 	for (int o = 0; o < d_out; ++o) {
-		W[o] += dW[o];
-		B[o] += dB[o];
+		W[o] += (dW_p[o] * MOMENTUM) + \
+				(dW_t[o] * ETA) - \
+				(W[o] * DECAY);
+		B[o] += (dB_p[o] * MOMENTUM) + \
+				(dB_t[o] * ETA);
+		dW_t[o].copyTo(dW_p[o]);
+		dB_t[o].copyTo(dB_p[o]);
+
+		dW_t[o].zero();
+		dB_t[o].zero();
 	}
 }

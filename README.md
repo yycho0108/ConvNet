@@ -47,7 +47,8 @@ Features :
 	- [ ] RMSProp
 - [x] Momentum
 	- [ ] Nesterov Momentum
-- [ ] MiniBatch Gradient Descent
+- [x] MiniBatch Gradient Descent
+- [x] Stochastic Gradient Descent
 - [ ] Conv-Pool Layer for Speed
 - [ ] Detecting End of Training
 - [ ] Reimplement *DeConvolution* to work faster

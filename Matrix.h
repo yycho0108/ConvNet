@@ -117,7 +117,8 @@ public:
 	double* d_data() const; //device data (gpu)
 };
 
+//TODO : move all matrix operations out of matrix class
 std::ostream& operator<<(std::ostream& os, Matrix& m);
-bool isnan(Matrix& m);
+bool isNaN(Matrix& m);
 
 #endif /* MATRIX_H_ */

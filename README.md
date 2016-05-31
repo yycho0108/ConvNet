@@ -48,6 +48,7 @@ Features :
 - [x] Momentum
 	- [ ] Nesterov Momentum
 - [x] MiniBatch Gradient Descent
+	- [ ] Parallelize MiniBatch Learning
 - [x] Stochastic Gradient Descent
 - [ ] Conv-Pool Layer for Speed
 - [ ] Detecting End of Training

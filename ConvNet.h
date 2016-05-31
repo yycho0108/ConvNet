@@ -9,7 +9,6 @@
 #include "FlattenLayer.h"
 #include "PoolLayer.h"
 #include "SoftMaxLayer.h"
-
 #include <vector>
 
 class ConvNet{

@@ -246,7 +246,7 @@ void convolve(const double* i, const double* k, double* o, int w, int h,
 	convolve_d(d_i, d_k, d_o, w, h, r);
 
 	//clock_t end = clock();
-	//printf("Took %f Seconds", float(end-start)/CLOCKS_PER_SEC);
+	//printf("Took %f Seconds", double(end-start)/CLOCKS_PER_SEC);
 
 	cudaMemcpy(o, d_o, sz, cudaMemcpyDeviceToHost);
 

@@ -44,56 +44,6 @@ void correlate(Matrix& I, Matrix& K, Matrix& O, cudaStream_t* stream=nullptr) {
  o[idx(i,j,w)] = a[a_i] * b[b_i];
  }*/
 
-__global__ void deconvolve(double* I, double* _G, double* dW, int iw, int ih) {
-	//TODO : current version is likely to be wrong... FIX!!
-	//CURRENTLY OUTPUTS NAN!! race-condition thing?
-
-	//w_i,w_j spans to Kernel Dims.
-	auto w_i = blockIdx.y;
-	auto w_j = blockIdx.x;
-	auto r = blockDim.x;
-
-	auto w = iw - d_abs(w_j - r); //iw = width of input matrix
-	auto h = ih - d_abs(w_i - r); //ih = height of input matrix
-
-	//here w,h is the [dims of the submatrix].
-
-	auto i = threadIdx.y;
-	auto j = threadIdx.x;
-
-	auto iscri = max(0, r - w_i);
-	auto isrcj = max(0, r - w_j);
-
-	//auto gscri = max(0,w_i-r);
-	//auto gscrj = max(0,w_j-r);
-	// if i>=0 && i + (w_i-r) is inbound then ...
-	if (iscri <= i && i < iscri + w
-			&& isrcj <= j && j < isrcj + h) { //i,j are within submatrix range
-
-		auto i_idx = idx(i, j, iw);
-		auto g_idx = idx(i + w_i - r, j + w_j - r, iw);
-		//gradient width is same as I because
-		//in the current mode of convolution, the two are the same.
-
-		dW[idx(w_i, w_j, r)] += I[i_idx] * _G[g_idx];
-	}
-}
-
-__global__ void deconvolve(double* I, double* _G, double* dW, int r, int w, int h){
-
-	extern __shared__ double ddW[];
-
-	//r = kernel radius
-	auto i = threadIdx.y;
-	auto j = threadIdx.x; // i,j for I[i][j]
-	for(int di=-r;di<=r;++di){
-		for(int dj=-r;dj<=r;++dj){
-			ddW[idx(di+r,dj+r,2*r+1)] += I[idx(i,j,w)] * _G[idx(i+di,j+dj,w)];
-		}
-	}
-
-	__syncthreads();
-}
 
 __global__ void safe_deconvolve(double* I, double* _G, double* dW, int w, int h){
 	//int kw = blockDim.x;
@@ -180,17 +130,6 @@ void deconvolve(Matrix& I, Matrix& _G, Matrix& dW) {
 		throw "TOO MANY THREADS!!";
 	}
 
-	/*dim3 gridDims(I.size().w, I.size().h, 1); //--> executed throughout I
-	dim3 blockDims(s, s, 1); //--> executed for each pt in kernel
-
-	deconvolve<<<gridDims, blockDims>>>(I.d_data(), _G.d_data(), dW.d_data(),
-			I.size().w, I.size().h); //G-begin index
-	*/
-
-	//WORKING CODE ...
-	//dim3 blockDims(s,s);
-	//safe_deconvolve<<<1,blockDims>>>(I.d_data(),_G.d_data(),dW.d_data(),I.size().w, I.size().h);
-
 	//TRYING
 	dim3 gridDims(s,s);
 	dim3 blockDims(I.size().w, I.size().h);
@@ -222,7 +161,7 @@ void ConvolutionLayer::setup(Size& _s, int& _d) {
 
 	streams_i = new cudaStream_t[d_in];
 	for (int i = 0; i < d_in; ++i) {
-		I.push_back(Matrix(s));
+		//I.push_back(Matrix(s));
 		cudaStreamCreate(&streams_i[i]);
 	}
 
@@ -264,11 +203,12 @@ void ConvolutionLayer::setup(Size& _s, int& _d) {
 }
 
 std::vector<Matrix>& ConvolutionLayer::FF(std::vector<Matrix>& _I) {
-	//pI = &_I;
-	for (int i = 0; i < d_in; ++i) {
+	pI = &_I;
+	/*for (int i = 0; i < d_in; ++i) {
 		//_I[i].copyTo(I[i],&streams_i[i]);
 		_I[i].copyTo(I[i]);
-	}
+	}*/
+	auto& I = *pI;
 
 	Matrix tmp = Matrix(O[0].size());
 
@@ -293,7 +233,7 @@ std::vector<Matrix>& ConvolutionLayer::FF(std::vector<Matrix>& _I) {
 }
 
 std::vector<Matrix>& ConvolutionLayer::BP(std::vector<Matrix>& _G) {
-	//std::vector<Matrix>& I = *pI;
+	auto& I = *pI;
 	auto iw = s.w;
 	auto ih = s.h;
 

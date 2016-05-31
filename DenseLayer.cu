@@ -30,7 +30,7 @@ void DenseLayer::setup(Size& s, int& d) {
 
 	//placeholders
 
-	I.push_back(Matrix());
+	//I.push_back(Matrix());
 	O.push_back(Matrix());
 	G.push_back(Matrix());
 
@@ -40,8 +40,9 @@ void DenseLayer::setup(Size& s, int& d) {
 }
 
 std::vector<Matrix>& DenseLayer::FF(std::vector<Matrix>& _I) {
-	//pI = &_I;
-	_I[0].copyTo(I[0]);
+	pI = &_I;
+	auto& I = *pI;
+	//_I[0].copyTo(I[0]);
 
 	//namedPrint(I[0]);
 	O[0] = W * I[0] + B;
@@ -50,8 +51,7 @@ std::vector<Matrix>& DenseLayer::FF(std::vector<Matrix>& _I) {
 }
 
 std::vector<Matrix>& DenseLayer::BP(std::vector<Matrix>& _G) {
-	//std::vector<Matrix>& I = *pI;
-
+	auto& I = *pI;
 	//TODO : implement fancy optimizations
 	Matrix Wt = Matrix::transpose(W);
 	G[0] = Wt * _G[0];

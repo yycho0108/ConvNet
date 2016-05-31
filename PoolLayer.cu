@@ -1,8 +1,5 @@
 #include "PoolLayer.h"
 
-//TODO : research if custom data types can be passed through to GPU in CUDA
-
-
 __global__ void pool(double* I, double* O, int* SW, //Switch
 		int iw, int ih, //width of input matrix
 		int s_w, int s_h,  //stride dims
@@ -16,20 +13,27 @@ __global__ void pool(double* I, double* O, int* SW, //Switch
 	int i = threadIdx.y;
 	int j = threadIdx.x;
 
-	O[idx(i,j,w)] = -99999.0; // reasonably small value, anyways.
+	double maxVal = -99999.0;// reasonably small value, anyways.
+	int maxIdx = 0;
+
+	int index = idx(i,j,w);
 	//TODO : fix all these arbitrary numbers
 
 	for(int ii=0;ii<p_h && s_h*i+ii < ih;++ii){ //check i+ii for bounds
 		for(int jj=0;jj<p_w && s_w*j+jj < iw;++jj){ //check j+jj for bounds
-			int index = idx(i,j,w);
+
 			int index_i = idx(s_h*i+ii,s_w*j+jj,iw);
 			double val = I[index_i];
-			if(val > O[index]){
-				SW[index] = index_i; //switches, stored in flattened index
-				O[index] = val;
+
+			if(val > maxVal){
+				maxIdx = index_i; //switches, stored in flattened index
+				maxVal = val;
 			}
 		}
 	}
+
+	O[index] = maxVal;
+	SW[index] = maxIdx;
 }
 
 __global__ void invert_pool(double* G_o, double* G_i, int* SW){

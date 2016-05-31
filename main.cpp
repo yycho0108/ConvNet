@@ -277,5 +277,5 @@ int main(int argc, char* argv[]){
 	auto end = std::clock();
 
 	std::cout << (end-start) /CLOCKS_PER_SEC << "SECONDS ELAPSED" << std::endl;
-	test(net,test_data,test_labels);
+	//test(net,test_data,test_labels);
 }

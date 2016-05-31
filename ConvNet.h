@@ -20,7 +20,8 @@ public:
 	ConvNet();
 	~ConvNet();
 
-	std::vector<Matrix>& FF(std::vector<Matrix>& _X);
+	std::vector<Matrix>& FF(std::vector<Matrix>& _I);
+	void FFBP(Batch_t& _I, Batch_t& _T, std::vector<int>& indices);
 	void BP(std::vector<Matrix>& O, std::vector<Matrix>& T);
 
 	void setup(Size s, int d); //size & depth of input

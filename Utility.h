@@ -29,9 +29,6 @@ typedef cudaStream_t cudaStream_t;
 extern void convolve_d(const double* i, const double* k, double* o,
 		int n, int m, int r, cudaStream_t* stream=nullptr);
 
-extern void convolve(const double* i, const double* k, double* o,
-		int n, int m, int r);
-
 extern void correlate_d(const double* d_i, const double* d_k, double* d_o,
 		int n, int m, int r, cudaStream_t* stream=nullptr);
 
@@ -47,6 +44,6 @@ extern void abs(const double* in, double* out, int n);
 
 extern __device__ int NearestPowerOf2 (int n);
 
-extern double reduce(double* d_arr, int n, std::string op);
+extern double reduce(const double* d_arr, int n, std::string op);
 
 #endif /* UTILITY_H_ */

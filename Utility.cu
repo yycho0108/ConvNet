@@ -157,20 +157,31 @@ void abs(const double* in, double* out, int n) {
 }
 
 
-__global__ void _convolve(const double* d_i, const double* d_k, double* d_o,
-		int r) {
+__global__ void _convolve(const double* d_i, const double* d_k, double* d_o, int r) {
+
+
 	int i = threadIdx.y;
 	int j = threadIdx.x;
 
 	int h = blockDim.y;
 	int w = blockDim.x;
 
-	d_o[idx(i, j, w)] = 0;
+	extern __shared__ double s_i[];
+	double* s_k = &s_i[w*h];
+	s_i[idx(i,j,w)] = d_i[idx(i,j,w)];
+
+	if(i < 2*r+1 && j < 2*r+1) //within kernel index
+		s_k[idx(i,j,2*r+1)] = d_k[idx(i,j,2*r+1)]; // --> is this necessary?
+
+	__syncthreads();
+
+	double tmp = 0;
+
 	for (int ki = -r; ki <= r; ++ki) {
 		for (int kj = -r; kj <= r; ++kj) {
 			if (inbound(i + ki, j + kj, h, w)) {
-				d_o[idx(i, j, w)] += d_i[idx(i + ki, j + kj, w)]
-						* d_k[idx(r - ki, r - kj, 2 * r + 1)]; //flip here if correlation
+				tmp += s_i[idx(i + ki, j + kj, w)]
+						* s_k[idx(r - ki, r - kj, 2 * r + 1)]; //flip here if correlation
 			}
 			//effectively zero-padding
 			//may change to VALID convolution later
@@ -178,22 +189,32 @@ __global__ void _convolve(const double* d_i, const double* d_k, double* d_o,
 			//d_o[i][j] += d_i[i+ki][j+kj] * d_k[ki+r][kj+r]
 		}
 	}
-
+	d_o[idx(i,j,w)] = tmp;
 }
-__global__ void _correlate(const double* d_i, const double* d_k, double* d_o,
-		int r) {
+
+__global__ void _correlate(const double* d_i, const double* d_k, double* d_o, int r) {
+
 	int i = threadIdx.y;
 	int j = threadIdx.x;
 
 	int h = blockDim.y;
 	int w = blockDim.x;
 
-	d_o[idx(i, j, w)] = 0;
+	extern __shared__ double s_i[];
+	double* s_k = &s_i[w*h];
+
+	s_i[idx(i,j,w)] = d_i[idx(i,j,w)];
+
+	if(i < 2*r+1 && j < 2*r+1) //within kernel index
+		s_k[idx(i,j,2*r+1)] = d_k[idx(i,j,2*r+1)];
+	__syncthreads();
+
+	double tmp = 0;
 	for (int ki = -r; ki <= r; ++ki) {
 		for (int kj = -r; kj <= r; ++kj) {
 			if (inbound(i + ki, j + kj, h, w)) {
-				d_o[idx(i, j, w)] += d_i[idx(i + ki, j + kj, w)]
-						* d_k[idx(r + ki, r + kj, 2 * r + 1)]; //flipped here, for correlation
+				tmp += s_i[idx(i + ki, j + kj, w)]
+						* s_k[idx(r + ki, r + kj, 2 * r + 1)]; //flipped here, for correlation
 			}
 			//effectively zero-padding
 			//may change to VALID convolution later
@@ -201,16 +222,18 @@ __global__ void _correlate(const double* d_i, const double* d_k, double* d_o,
 			//d_o[i][j] += d_i[i+ki][j+kj] * d_k[ki+r][kj+r]
 		}
 	}
+	d_o[idx(i,j,w)] = tmp;
 }
 void convolve_d(const double* d_i, const double* d_k, double* d_o,
 //if all ptrs are in gpu
 		int w, int h, int r, cudaStream_t* stream) {
 	dim3 g(1, 1);
 	dim3 b(w, h);
+	int sMemSize = sizeof(double) * (w*h + (2*r+1)*(2*r+1));
 	if (stream) {
-		_convolve<<<g,b,0,*stream>>>(d_i,d_k,d_o,r);
+		_convolve<<<g,b,sMemSize,*stream>>>(d_i,d_k,d_o,r);
 	} else {
-		_convolve<<<g,b>>>(d_i,d_k,d_o,r);
+		_convolve<<<g,b,sMemSize>>>(d_i,d_k,d_o,r);
 	}
 
 }
@@ -220,44 +243,16 @@ void correlate_d(const double* d_i, const double* d_k, double* d_o,
 		int w, int h, int r, cudaStream_t* stream) {
 	dim3 g(1, 1);
 	dim3 b(w, h);
+	int sMemSize = sizeof(double)* (w*h + (2*r+1)*(2*r+1));
 	if (stream) {
-		_correlate<<<g,b,0,*stream>>>(d_i,d_k,d_o,r);
+		_correlate<<<g,b,sMemSize,*stream>>>(d_i,d_k,d_o,r);
 	} else {
-		_correlate<<<g,b>>>(d_i,d_k,d_o,r);
+		_correlate<<<g,b,sMemSize>>>(d_i,d_k,d_o,r);
 	}
 }
 
-void convolve(const double* i, const double* k, double* o, int w, int h,
-		int r) {
 
-	double* d_i, *d_k, *d_o;
-
-	int sz = w * h * sizeof(double);
-	int ksz = (2 * r + 1) * (2 * r + 1) * sizeof(double);
-
-	cudaMalloc(&d_i, sz);
-	cudaMalloc(&d_k, ksz);
-	cudaMalloc(&d_o, sz);
-
-	cudaMemcpy(d_i, i, sz, cudaMemcpyHostToDevice);
-	cudaMemcpy(d_k, k, ksz, cudaMemcpyHostToDevice);
-
-	//clock_t start = clock();
-	convolve_d(d_i, d_k, d_o, w, h, r);
-
-	//clock_t end = clock();
-	//printf("Took %f Seconds", double(end-start)/CLOCKS_PER_SEC);
-
-	cudaMemcpy(o, d_o, sz, cudaMemcpyDeviceToHost);
-
-	cudaFree(d_i);
-	cudaFree(d_k);
-	cudaFree(d_o);
-
-	return;
-}
-
-__global__ void gridMax(double* arr, int n, double* b_max) { //b_sum = block-sum
+__global__ void gridMax(const double* arr, int n, double* b_max) { //b_sum = block-sum
 	extern __shared__ double s_arr[]; //blockDim.x;
 
 	int start = blockIdx.x * blockDim.x;
@@ -300,7 +295,7 @@ __device__ int NearestPowerOf2 (int n)
   return x;
 }
 
-__global__ void gridMin(double* arr, int n, double* b_min) { //b_sum = block-sum
+__global__ void gridMin(const double* arr, int n, double* b_min) { //b_sum = block-sum
 	extern __shared__ double s_arr[]; //blockDim.x;
 
 	int start = blockIdx.x * blockDim.x;
@@ -331,7 +326,7 @@ __global__ void gridMin(double* arr, int n, double* b_min) { //b_sum = block-sum
 	}
 }
 
-__global__ void gridSum(double* arr, int n, double* b_sum) { //b_sum = block-sum
+__global__ void gridSum(const double* arr, int n, double* b_sum) { //b_sum = block-sum
 	extern __shared__ double s_arr[]; //blockDim.x;
 	int start = blockIdx.x * blockDim.x;
 	int i = start + threadIdx.x;
@@ -361,7 +356,7 @@ __global__ void gridSum(double* arr, int n, double* b_sum) { //b_sum = block-sum
 	}
 }
 
-double reduce(double* d_arr, int n, std::string op) {
+double reduce(const double* d_arr, int n, std::string op) {
 	assert(n < 65536);
 
 	double* d_tmp, *d_res;

@@ -53,9 +53,6 @@ void __global__ activate(double* I, double* O, dfun f, int lim) {
 void activate(Matrix& I, Matrix& O, dfun f) {
 
 	int n_elem = I.size().wh;
-	//hline();
-	//namedPrint(I);
-
 	if(n_elem < 1024){
 		activate<<<1, n_elem>>>
 					(I.d_data(), O.d_data(), f);
@@ -63,9 +60,6 @@ void activate(Matrix& I, Matrix& O, dfun f) {
 		activate<<< (n_elem+255) / 256, 256>>>
 					(I.d_data(), O.d_data(), f, n_elem);
 	}
-	//O.set_sync(false);
-	//namedPrint(O);
-	//TODO: potentially divide up to more threads?
 }
 
 __device__ dfun pf_sig = sigmoid;

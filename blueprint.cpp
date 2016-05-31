@@ -1,3 +1,4 @@
+#ifdef BLUEPRINT
 #include <pthread.h>
 #include <stdio.h>
 #include <string.h>
@@ -103,3 +104,4 @@ int main(){
 
 	pthread_exit(NULL);
 }
+#endif

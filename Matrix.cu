@@ -10,8 +10,6 @@
 #include "curand_kernel.h"
 #include <cassert>
 
-// TODO : optimize for non in-place calculations by setting output ptrs
-
 std::ostream& operator<<(std::ostream& os, Matrix& m) {
 	m.print(os);
 	return os;
@@ -29,7 +27,7 @@ bool isNaN(Matrix& m) {
 typedef double (*dfun)(double);
 RandManager Matrix::rnd = RandManager(); //or some smaller value? welp.
 
-__device__ double vdot(double* a, double* b, int n) { //dot product of two vectors.
+__device__ double vdot(const double* a, const double* b, int n) { //dot product of two vectors.
 	double res = 0;
 	for (int i = 0; i < n; ++i) {
 		res += a[i] * b[i];
@@ -43,7 +41,7 @@ __global__ void apply(double* I, dfun f) {
 	I[i] = f(I[i]);
 }
 
-__global__ void dotT(double* a, double* b, double* o, int com) {
+__global__ void dotT(const double* a, const double* b, double* o, int com) {
 	//b needs to be transposed prior to this.
 	auto h = blockDim.y;
 	auto w = blockDim.x;
@@ -61,7 +59,7 @@ __global__ void dotT(double* a, double* b, double* o, int com) {
 	// c = mat of n x m
 }
 
-__global__ void dotT(double* a, double* b, double* o, int com, int w, int h) {
+__global__ void dotT(const double* a, const double* b, double* o, int com, int w, int h) {
 	//b needs to be transposed prior to this.
 	int j = blockIdx.x * blockDim.x + threadIdx.x;
 	int i = blockIdx.y * blockDim.y + threadIdx.y;
@@ -137,19 +135,19 @@ Matrix dot(const Matrix& a, const Matrix& b) {
 
 
 __global__ void _eye(double* d_dat, int w) {
-	auto i = threadIdx.x;
+	const int i = threadIdx.x;
 	d_dat[idx(i, i, w)] = 1.0;
 }
 
-__global__ void _transpose(double* I, double* O) {
-	int h = blockDim.y;
-	int w = blockDim.x;
-	int i = threadIdx.y;
-	int j = threadIdx.x;
+__global__ void _transpose(const double* I, double* O) {
+	const int h = blockDim.y;
+	const int w = blockDim.x;
+	const int i = threadIdx.y;
+	const int j = threadIdx.x;
 	O[idx(j, i, h)] = I[idx(i, j, w)];
 }
 
-__global__ void _transpose(double* I, double* O, int w, int h) {
+__global__ void _transpose(const double* I, double* O, int w, int h) {
 	//TODO : optimize with 'shared memory'
 	int j = blockIdx.x * blockDim.x + threadIdx.x;
 	int i = blockIdx.y * blockDim.y + threadIdx.y;
@@ -158,30 +156,30 @@ __global__ void _transpose(double* I, double* O, int w, int h) {
 		O[idx(j, i, h)] = I[idx(i, j, w)];
 }
 
-__global__ void _lt(double* I, double t, double* O, int n) {
+__global__ void _lt(const double* I, double t, double* O, int n) {
 	int i = blockIdx.x * blockDim.x + threadIdx.x;
 	if (i < n)
 		O[i] = (I[i] < t);
 }
-__global__ void _le(double* I, double t, double* O, int n) {
+__global__ void _le(const double* I, double t, double* O, int n) {
 	int i = blockIdx.x * blockDim.x + threadIdx.x;
 	if (i < n)
 		O[i] = (I[i] <= t);
 }
 
-__global__ void _gt(double* I, double t, double* O, int n) {
+__global__ void _gt(const double* I, double t, double* O, int n) {
 	int i = blockIdx.x * blockDim.x + threadIdx.x;
 	if (i < n)
 		O[i] = (I[i] > t);
 }
 
-__global__ void _ge(double* I, double t, double* O, int n) {
+__global__ void _ge(const double* I, double t, double* O, int n) {
 	int i = blockIdx.x * blockDim.x + threadIdx.x;
 	if (i < n)
 		O[i] = (I[i] >= t);
 }
 
-__global__ void _eq(double* I, double t, double* O, int n) {
+__global__ void _eq(const double* I, double t, double* O, int n) {
 	int i = blockIdx.x * blockDim.x + threadIdx.x;
 	if (i < n)
 		O[i] = (I[i] == t);

@@ -17,6 +17,7 @@ Features :
 	- [x] Optimize for non in-place calculations by setting output ptr
 	- [ ] Concurrent Execution Optimization
 	- [ ] Increase Block Size to Hide Latency
+	- [ ] Elliminate Bank Conflicts
 
 #Layers :
 - [x] Activation Layer

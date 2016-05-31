@@ -65,6 +65,8 @@ public:
 	Matrix operator*(double) const;
 	Matrix operator/(double) const;
 
+	Matrix operator-() const; //unary negate
+
 	/* INDICES SELECTION */
 	Matrix operator<(double) const;
 	Matrix operator<=(double) const;
@@ -120,5 +122,35 @@ public:
 //TODO : move all matrix operations out of matrix class
 std::ostream& operator<<(std::ostream& os, Matrix& m);
 bool isNaN(Matrix& m);
+
+
+//reversed-order operations
+Matrix operator+(double, const Matrix&);
+Matrix operator-(double, const Matrix&);
+Matrix operator*(double, const Matrix&);
+//Matrix operator/(double, const Matrix&);
+
+//rvalue operations
+Matrix&& operator+(Matrix&&, const Matrix&);
+Matrix&& operator-(Matrix&&, const Matrix&);
+Matrix&& operator/(Matrix&&, const Matrix&);
+Matrix&& operator%(Matrix&&, const Matrix&); //elem-wise mul
+
+Matrix&& operator+(Matrix&&, const Matrix&&);
+Matrix&& operator-(Matrix&&, const Matrix&&);
+Matrix&& operator/(Matrix&&, const Matrix&&);
+Matrix&& operator%(Matrix&&, const Matrix&&); //elem-wise mul
+
+Matrix&& operator+(Matrix&&, double);
+Matrix&& operator-(Matrix&&, double);
+Matrix&& operator*(Matrix&&, double);
+Matrix&& operator/(Matrix&&, double);
+
+Matrix&& operator+(double, Matrix&&);
+Matrix&& operator-(double, Matrix&&);
+Matrix&& operator*(double, Matrix&&);
+//Matrix&& operator/(double, Matrix&&);
+
+Matrix&& operator-(Matrix&&);
 
 #endif /* MATRIX_H_ */

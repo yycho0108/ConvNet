@@ -83,7 +83,6 @@ __global__ void _div(const double* a, const double b, double* out, int n){
 		out[i] = a[i]/b;
 }
 
-
 void add(const double* a, const double* b, double* o, int n){
 	if(n < 1024){
 		_add<<<1,n>>>(a,b,o);

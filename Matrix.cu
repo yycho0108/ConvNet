@@ -404,6 +404,12 @@ Matrix Matrix::operator/(double o) const{
 	return m /= o;
 }
 
+Matrix Matrix::operator-() const{
+	Matrix m;
+	copyTo(m);
+	return m *= -1.0;
+}
+
 Matrix Matrix::operator<(double val) const{
 	Matrix m(this->s);
 	int nb = (s.wh + 255) / 256; //# of blocks
@@ -435,6 +441,7 @@ Matrix Matrix::operator==(double val) const{
 	_eq<<<nb,256>>>(d_dat,val,m.d_dat,s.wh);
 	return m;
 }
+
 double Matrix::operator()(int i, int j){
 	sync();
 	return dat[idx(i,j,s.w)];
@@ -689,4 +696,84 @@ double* Matrix::data() const{
 double* Matrix::d_data() const{
 	return d_dat;
 	//device data (gpu)
+}
+
+Matrix operator+(double v, const Matrix& m){
+	return m + v;
+}
+
+Matrix operator-(double v, const Matrix& m){
+	//TODO : specialize? I feel like mul is efficient enough... well.
+	return (m-v) * -1.0;
+}
+Matrix operator*(double v, const Matrix& m){
+	return m*v;
+
+}
+/*
+Matrix operator/(double v, const Matrix& m){
+	//TODO : implement
+	return m *= (1.0/v);
+}
+*/
+
+Matrix&& operator+(Matrix&& a, const Matrix& b){
+	return std::move(a += b);
+}
+Matrix&& operator-(Matrix&& a, const Matrix& b){
+	return std::move(a -= b);
+}
+Matrix&& operator/(Matrix&& a, const Matrix& b){
+	return std::move(a /= b);
+}
+Matrix&& operator%(Matrix&& a, const Matrix& b){
+	return std::move(a %= b);
+}
+
+Matrix&& operator+(Matrix&& a, const Matrix&& b){
+	return std::move(a += b);
+}
+Matrix&& operator-(Matrix&& a, const Matrix&& b){
+	return std::move(a -= b);
+}
+Matrix&& operator/(Matrix&& a, const Matrix&& b){
+	return std::move(a /= b);
+}
+Matrix&& operator%(Matrix&& a, const Matrix&& b){
+	return std::move(a %= b);
+}
+
+
+Matrix&& operator+(Matrix&& m, double v){
+	return std::move(m += v);
+}
+
+Matrix&& operator-(Matrix&& m, double v){
+	return std::move(m -= v);
+}
+
+Matrix&& operator*(Matrix&& m, double v){
+	return std::move(m *= v);
+}
+Matrix&& operator/(Matrix&& m, double v){
+	return std::move(m /= v);
+}
+Matrix&& operator+(double v, Matrix&& m){
+	return std::move(m += v);
+}
+Matrix&& operator-(double v, Matrix&& m){
+	m -= v;
+	return std::move(-m);
+}
+Matrix&& operator*(double v, Matrix&& m){
+	return std::move(m *= v);
+}
+/*
+Matrix&& operator/(double v, Matrix&& m){
+	return m *= (1.0/v);
+}
+*/
+
+Matrix&& operator-(Matrix&& m){
+	return std::move(m *= -1.0);
 }

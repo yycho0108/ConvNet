@@ -30,7 +30,7 @@ void DenseLayer::setup(Size& s, int& d) {
 
 	//placeholders
 
-	//I.push_back(Matrix());
+	I.push_back(Matrix());
 	O.push_back(Matrix());
 	G.push_back(Matrix());
 
@@ -40,17 +40,18 @@ void DenseLayer::setup(Size& s, int& d) {
 }
 
 std::vector<Matrix>& DenseLayer::FF(std::vector<Matrix>& _I) {
-	pI = &_I;
-	//_I[0].copyTo(I[0]);
+	//pI = &_I;
+	_I[0].copyTo(I[0]);
 
 	//namedPrint(I[0]);
-	O[0] = W * _I[0] + B;
+	O[0] = W * I[0] + B;
 	//namedPrint(O[0]);
 	return O; //no activation! add it separately.
 }
 
 std::vector<Matrix>& DenseLayer::BP(std::vector<Matrix>& _G) {
-	std::vector<Matrix>& I = *pI;
+	//std::vector<Matrix>& I = *pI;
+
 	//TODO : implement fancy optimizations
 	Matrix Wt = Matrix::transpose(W);
 	G[0] = Wt * _G[0];
@@ -62,11 +63,12 @@ std::vector<Matrix>& DenseLayer::BP(std::vector<Matrix>& _G) {
 		+ (_G[0] * ETA)
 		- (B * DECAY)*/
 	dW = _G[0] * Matrix::transpose(I[0]);
+
 	dW_t += dW;
 	dB_t += _G[0];
 
-	W += dW * ETA;
-	B += _G[0] * ETA; //individual updates
+	//W += dW * ETA;
+	//B += _G[0] * ETA; //individual updates
 
 	//dW.copyTo(dW_p);
 	//dB.copyTo(dB_p);
@@ -78,6 +80,9 @@ std::vector<Matrix>& DenseLayer::BP(std::vector<Matrix>& _G) {
 }
 
 void DenseLayer::update(){
+	//dW_t /= 128.0;
+	//dB_t /= 128.0;
+
 	W += (dW_p * MOMENTUM) + \
 		 (dW_t * ETA) - \
 		 (W * DECAY);

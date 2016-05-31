@@ -28,6 +28,7 @@ public:
 	void push_back(Layer*&& l);
 	void update();
 	double error();
+	void debug();
 	//void save(std::string dir);//save directory
 	//void load(std::string dir);
 };

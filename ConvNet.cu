@@ -2,7 +2,6 @@
 
 //RMS error
 double RMS(Matrix& m){
-	m.set_sync(false);
 	return sqrt((m%m).avg());
 	//square -> mean -> root
 }
@@ -87,4 +86,8 @@ void ConvNet::update(){
 }
 double ConvNet::error(){
 	return loss;
+}
+
+void ConvNet::debug(){
+	L[0]->debug();
 }

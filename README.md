@@ -11,10 +11,10 @@ Features :
 	- [x] Automatic Memory Management
 	- [x] Utility functions
 	- [x] Random-fill
-	- [ ] Shared Memory Optimization
+	- [x] Shared Memory Optimization
 	- [ ] __restrict__ Optimization
 	- [ ] Save-Load Function
-	- [ ] Optimize for non in-place calculations by setting output ptr
+	- [x] Optimize for non in-place calculations by setting output ptr
 	- [ ] Concurrent Execution Optimization
 	- [ ] Increase Block Size to Hide Latency
 
@@ -51,7 +51,7 @@ Features :
 - [x] Stochastic Gradient Descent
 - [ ] Conv-Pool Layer for Speed
 - [ ] Detecting End of Training
-- [ ] Reimplement *DeConvolution* to work faster
+- [x] Reimplement *DeConvolution* to work faster
 
 # RESULTS
 

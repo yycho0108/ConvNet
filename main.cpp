@@ -9,8 +9,10 @@
 #include "Parser.h"
 
 
-static volatile bool keepTraining = true;
-static volatile bool keepTesting = true;
+//static volatile bool keepTraining = true;
+//static volatile bool keepTesting = true;
+static bool keepTraining = true;
+static bool keepTesting = true;
 
 void intHandler(int){
 	if(keepTraining){
@@ -23,7 +25,6 @@ void intHandler(int){
 
 void setup(ConvNet& net){
 	/* ** CONV LAYER TEST ** */
-
 	net.push_back(new ConvolutionLayer(12));
 	net.push_back(new ActivationLayer("relu"));
 	net.push_back(new DropoutLayer(0.5));
@@ -98,6 +99,8 @@ void train_batch(ConvNet& net,
 	std::ofstream ferr("error.csv");
 	std::cout << "TRAINING FOR : " << lim << std::endl;
 
+	std::ofstream fdebug("debug.txt");
+
 	int len = train_data.size();
 	Sampler sampler(time(0));
 	for(int i=0;i<lim;++i){
@@ -105,9 +108,29 @@ void train_batch(ConvNet& net,
 		std::vector<int> indices = sampler(train_data.size(),batchSize);
 
 		for(auto& index : indices){
+
 			auto& Yp = net.FF(train_data[index]);
 			net.BP(Yp,train_labels[index]);
+
 			ferr << net.error() << '\n';
+
+			if(net.error() < 0.1){
+				train_data[index][0].set_sync(false);
+				fdebug << train_data[index][0] << std::endl;
+
+				Yp[0].set_sync(false);
+				fdebug << Yp[0] << std::endl;
+
+				train_labels[index][0].set_sync(false);
+				fdebug << train_labels[index][0] << std::endl;
+				fdebug.flush();
+				fdebug.close();
+
+				net.debug();
+				return;
+			}
+			//train_labels[index][0].set_sync(false);
+			//std::cout << train_labels[index][0] << std::endl;
 		}
 
 		net.update();

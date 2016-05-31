@@ -137,8 +137,8 @@ std::vector<Matrix>& ActivationLayer::BP(std::vector<Matrix>& _G) {
 	std::vector<Matrix>& I = *pI;
 	for (int i = 0; i < d; ++i) {
 		activate(I[i], tmp, f_d);
-		_G[i] %= tmp;
 		//G[i] = _G[i] % tmp;
+		_G[i] %= tmp;
 		//G[i].set_sync(false);
 		//namedPrint(G[i]);
 		//or consider setting G[i].dat as destination of mul.

@@ -19,7 +19,7 @@ private:
 	Size s;
 	int d_in, d_out;
 	bool** connection;
-	std::vector<Matrix> W, B, dW, dB, *pI, O, G;
+	std::vector<Matrix> W, B, dW, dB, I, O, G;
 	std::vector<Matrix> dW_p, dB_p;
 	std::vector<Matrix> dW_t, dB_t; //-> mini-batch
 	cudaStream_t* streams_i;
@@ -33,7 +33,7 @@ public:
 	virtual std::vector<Matrix>& FF(std::vector<Matrix>& I);
 	virtual std::vector<Matrix>& BP(std::vector<Matrix>& G);
 	virtual void update();
-
+	virtual void debug();
 };
 
 #endif /* CONVOLUTIONLAYER_H_ */

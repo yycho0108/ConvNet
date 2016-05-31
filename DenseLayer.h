@@ -12,7 +12,7 @@ private:
 		   dW_t, dB_t,
 		   dW_p, dB_p;
 
-	std::vector<Matrix> *pI, O, G;
+	std::vector<Matrix> I, O, G;
 public:
 	DenseLayer(int s_out); //and possibly also optimization as arg.
 	~DenseLayer();

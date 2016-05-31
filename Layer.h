@@ -24,7 +24,7 @@ public:
 	virtual std::vector<Matrix>& FF(std::vector<Matrix>&)=0;
 	virtual std::vector<Matrix>& BP(std::vector<Matrix>&)=0;
 	virtual void update()=0;
-
+	virtual void debug(){};
 	//TODO : implement save-load logic
 	//virtual void save(FileStorage& f, int i)=0;
 	//virtual void load(FileStorage& f, int i)=0;

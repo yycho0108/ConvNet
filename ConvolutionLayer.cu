@@ -7,6 +7,7 @@
 
 #include "ConvolutionLayer.h"
 
+
 __device__ int d_abs(int x) {
 	return x > 0 ? x : -x;
 }
@@ -118,18 +119,6 @@ __global__ void safe_deconvolve(double* I, double* _G, double* dW, int w, int h)
 
 }
 
-__device__ int NearestPowerOf2 (int n)
-{
-  if (!n) return n;  //(0 == 2^0)
-
-  int x = 1;
-  while(x < n)
-    {
-      x <<= 1;
-    }
-  return x;
-}
-
 __global__ void rapid_deconvolve(double* I, double* _G, double* dW, int w, int h){
 	extern __shared__ double ddW[]; //dims same as I
 
@@ -233,7 +222,7 @@ void ConvolutionLayer::setup(Size& _s, int& _d) {
 
 	streams_i = new cudaStream_t[d_in];
 	for (int i = 0; i < d_in; ++i) {
-		//I.push_back(Matrix(s));
+		I.push_back(Matrix(s));
 		cudaStreamCreate(&streams_i[i]);
 	}
 
@@ -275,14 +264,11 @@ void ConvolutionLayer::setup(Size& _s, int& _d) {
 }
 
 std::vector<Matrix>& ConvolutionLayer::FF(std::vector<Matrix>& _I) {
-	pI = &_I;
-	/*
-	 *
-	 *for (int i = 0; i < d_in; ++i) {
-		_I[i].copyTo(I[i],&streams_i[i]);
-		//_I[i].copyTo(I[i]);
+	//pI = &_I;
+	for (int i = 0; i < d_in; ++i) {
+		//_I[i].copyTo(I[i],&streams_i[i]);
+		_I[i].copyTo(I[i]);
 	}
-	 */
 
 	Matrix tmp = Matrix(O[0].size());
 
@@ -292,7 +278,7 @@ std::vector<Matrix>& ConvolutionLayer::FF(std::vector<Matrix>& _I) {
 			if (connection[o][i]) {
 				//TODO : this seems like it can be parallelized, like ""per each output layer...""
 				//convolve(_I[i], W[o], tmp,&streams_i[i]);
-				convolve(_I[i], W[o], tmp);
+				convolve(I[i], W[o], tmp);
 
 				O[o] += tmp;
 			}
@@ -307,7 +293,7 @@ std::vector<Matrix>& ConvolutionLayer::FF(std::vector<Matrix>& _I) {
 }
 
 std::vector<Matrix>& ConvolutionLayer::BP(std::vector<Matrix>& _G) {
-	std::vector<Matrix>& I = *pI;
+	//std::vector<Matrix>& I = *pI;
 	auto iw = s.w;
 	auto ih = s.h;
 
@@ -376,8 +362,8 @@ std::vector<Matrix>& ConvolutionLayer::BP(std::vector<Matrix>& _G) {
 		dB_t[o] += _G[o];
 
 		//individual updates
-		W[o] += dW[o] * ETA;
-		B[o] += _G[o] * ETA;
+		//W[o] += dW[o] * ETA;
+		//B[o] += _G[o] * ETA;
 
 		/*if(isnan(dW[o])){
 			throw "DISNAN!";
@@ -391,6 +377,10 @@ std::vector<Matrix>& ConvolutionLayer::BP(std::vector<Matrix>& _G) {
 void ConvolutionLayer::update() {
 	//minibatch-like
 	for (int o = 0; o < d_out; ++o) {
+		//dW_t[o] /= 128.0;
+		//dB_t[o] /= 128.0; //batch size
+
+
 		W[o] += (dW_p[o] * MOMENTUM) + \
 				(dW_t[o] * ETA) - \
 				(W[o] * DECAY);
@@ -401,5 +391,11 @@ void ConvolutionLayer::update() {
 
 		dW_t[o].zero();
 		dB_t[o].zero();
+	}
+}
+
+void ConvolutionLayer::debug(){
+	for(int o=0;o<d_out;++o){
+		W[o].print(std::cout);
 	}
 }

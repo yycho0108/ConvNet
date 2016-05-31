@@ -9,6 +9,7 @@
 #define UTILITY_H_
 
 #include <cuda_runtime.h>
+#include <string>
 typedef cudaStream_t cudaStream_t;
 
 
@@ -43,5 +44,9 @@ extern void sub(const double* a, const double b, double* o, int n);
 extern void mul(const double* a, const double b, double* o, int n);
 extern void div(const double* a, const double b, double* o, int n);
 extern void abs(const double* in, double* out, int n);
+
+extern __device__ int NearestPowerOf2 (int n);
+
+extern double reduce(double* d_arr, int n, std::string op);
 
 #endif /* UTILITY_H_ */

@@ -60,6 +60,8 @@ __global__ void dotT(const double* a, const double* b, double* o, int com) {
 }
 
 __global__ void dotT(const double* a, const double* b, double* o, int com, int w, int h) {
+	extern __shared__ double s_a[];
+	double* s_b = &s_a[blockDim.x * blockDim.y];
 	//b needs to be transposed prior to this.
 	int j = blockIdx.x * blockDim.x + threadIdx.x;
 	int i = blockIdx.y * blockDim.y + threadIdx.y;
@@ -120,14 +122,14 @@ Matrix dot(const Matrix& a, const Matrix& b) {
 
 	if (s.wh < 1024) {
 		dim3 blockDims(s.w,s.h);
-		dotT<<<1,blockDims>>>(a.d_data(),bT.d_data(),o.d_data(),com);
+		dotT<<<1,blockDims,sizeof(double)*blockDims.x*blockDims.y>>>(a.d_data(),bT.d_data(),o.d_data(),com);
 
 	} else {
 		//slow impl.
 
 		dim3 blockDims(16,16);
 		dim3 gridDims((s.w+15)/16,(s.h+15)/16);
-		dotT<<<gridDims,blockDims>>>(a.d_data(),bT.d_data(),o.d_data(),com, s.w, s.h);
+		dotT<<<gridDims,blockDims,sizeof(double)*blockDims.x*blockDims.y>>>(a.d_data(),bT.d_data(),o.d_data(),com, s.w, s.h);
 	}
 
 	return o;

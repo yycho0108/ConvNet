@@ -65,6 +65,7 @@ void* FFBP_wrap(void* args){
 		//other than that, exactly the same.
 	}
 
+	// BP...
 	std::vector<Matrix> _G = *T - *I; // I == O in this case
 
 	auto G = &_G;

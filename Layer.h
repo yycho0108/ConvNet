@@ -29,7 +29,7 @@ public:
 	virtual std::vector<Matrix>& BP(std::vector<Matrix>&)=0;
 
 	virtual std::vector<Matrix>& FF(std::vector<Matrix>&, int)=0; // --> for batch-learn
-	virtual std::vector<Matrix>& BP(std::vector<Matrix>&, int)=0;
+	virtual std::vector<Matrix>& BP(std::vector<Matrix>&, int)=0; // --> for batch-learn
 
 	virtual void update()=0;
 	virtual void debug(){};

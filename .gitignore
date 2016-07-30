@@ -1,0 +1,37 @@
+
+# Created by https://www.gitignore.io/api/linux,vim,git,jekyll
+
+### Linux ###
+*~
+
+# temporary files which can be created if a process still has a handle open of a deleted file
+.fuse_hidden*
+
+# KDE directory preferences
+.directory
+
+# Linux trash folder which might appear on any partition or disk
+.Trash-*
+
+
+### Vim ###
+# swap
+[._]*.s[a-w][a-z]
+[._]s[a-w][a-z]
+# session
+Session.vim
+# temporary
+.netrwhist
+*~
+# auto-generated tag files
+tags
+
+
+### Git ###
+*.orig
+
+
+### Jekyll ###
+_site/
+.sass-cache/
+.jekyll-metadata

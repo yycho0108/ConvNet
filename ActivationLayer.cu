@@ -1,6 +1,7 @@
 #include "ActivationLayer.h"
 #include "Utility.h"
 
+/* COLLECTION OF ACTIVATION FUNCTIONS */
 double __device__ sigmoid(double x) {
 	//can only be called from device
 	return 1.0 / (1.0 + exp(-x));
@@ -39,25 +40,28 @@ void __global__ sigmoid(double* I, double* O){
 	int i = threadIdx.x;
 	O[i]  = 1.0 / (1.0 + exp(-I[i]));
 }
+
 void __global__ activate(double* I, double* O, dfun f) {
 	//can be called from host
 	int i = threadIdx.x;
 	O[i] = f(I[i]);
 }
+
+
 void __global__ activate(double* I, double* O, dfun f, int lim) {
 	int i = blockIdx.x * blockDim.x + threadIdx.x;
-
 	if(i<lim)
 		O[i] = f(I[i]);
 }
-void activate(Matrix& I, Matrix& O, dfun f) {
 
+/* ACTIVATION KERNEL */
+void activate(Matrix& I, Matrix& O, dfun f, cudaStream_t& stream) {
 	int n_elem = I.size().wh;
 	if(n_elem < 1024){
-		activate<<<1, n_elem>>>
+		activate<<<1, n_elem, 0, stream>>>
 					(I.d_data(), O.d_data(), f);
 	}else{
-		activate<<< (n_elem+255) / 256, 256>>>
+		activate<<< (n_elem+255) / 256, 256, 0, stream>>>
 					(I.d_data(), O.d_data(), f, n_elem);
 	}
 }
@@ -118,7 +122,7 @@ std::vector<Matrix>& ActivationLayer::FF(std::vector<Matrix>& _I) {
 		//_I[i].copyTo(I[i]);
 		//namedPrint(I[i]);
 		//sigmoid<<<1,s.wh>>>(I[i].d_data(),O[i].d_data());
-		activate(_I[i], O[i], f);
+		activate(_I[i], O[i], f, streams[i]);
 		//O[i].set_sync(false); //indicate O[i] is not synced anymore!
 		//namedPrint(O[i]);
 
@@ -130,7 +134,7 @@ std::vector<Matrix>& ActivationLayer::BP(std::vector<Matrix>& _G) {
 	Matrix tmp(s);
 	std::vector<Matrix>& I = *pI;
 	for (int i = 0; i < d; ++i) {
-		activate(I[i], tmp, f_d);
+		activate(I[i], tmp, f_d, streams[i]);
 		//G[i] = _G[i] % tmp;
 		_G[i] %= tmp;
 		//G[i].set_sync(false);

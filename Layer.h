@@ -16,8 +16,6 @@
 #include "Params.h"
 #include "Matrix.h"
 
-using Batch_t = std::vector<std::vector<Matrix>>;
-
 class Layer {
 public:
 	//Layer(); no need for constructor
@@ -27,9 +25,6 @@ public:
 
 	virtual std::vector<Matrix>& FF(std::vector<Matrix>&)=0;
 	virtual std::vector<Matrix>& BP(std::vector<Matrix>&)=0;
-
-	virtual std::vector<Matrix>& FF(std::vector<Matrix>&, int)=0; // --> for batch-learn
-	virtual std::vector<Matrix>& BP(std::vector<Matrix>&, int)=0; // --> for batch-learn
 
 	virtual void update()=0;
 	virtual void debug(){};

@@ -188,17 +188,17 @@ __global__ void _eq(const double* I, double t, double* O, int n) {
 }
 
 Matrix::Matrix() :
-		d_dat(nullptr), dat(nullptr), s(0, 0), synced(false) {
+		d_dat(nullptr), dat(nullptr), s(0, 0), synced(false){
 	//nothing!
 }
 
 Matrix::Matrix(Size s, double* d) :
-		Matrix(s.w, s.h, d) {
+		Matrix(s.w, s.h, d){
 
 }
 
 Matrix::Matrix(int w, int h, double* d) :
-		s(w, h) {
+		s(w, h){
 	//d is host pointer
 
 	int sz = w * h * sizeof(double);
@@ -384,31 +384,35 @@ Matrix Matrix::operator%(const Matrix& o) const {
 	return std::move(m);
 }
 Matrix Matrix::operator+(const Matrix&& o) const {
+
+	std::cout << "GET HERE? " << std::endl;
 	//assert(size() == o.size());
-	Matrix m(s);
-	add(d_dat,o.d_dat,m.d_dat,s.wh);
-	return std::move(m);
+	add(d_dat,o.d_dat,o.d_dat,s.wh);
+	return std::move(o);
 }
 Matrix Matrix::operator-(const Matrix&& o) const {
+
+	std::cout << "GET HERE? " << std::endl;
 	//assert(size() == o.size());
-	Matrix m(s);
-	sub(d_dat,o.d_dat,m.d_dat,s.wh);
-	return std::move(m);
+	sub(d_dat,o.d_dat,o.d_dat,s.wh);
+	return std::move(o);
 }
 Matrix Matrix::operator*(const Matrix&& o) const {
 	return std::move(dot(*this, o));
 }
 Matrix Matrix::operator/(const Matrix&& o) const {
+
+	std::cout << "GET HERE? " << std::endl;
 	//assert(size() == o.size());
-	Matrix m(s);
-	div(d_dat,o.d_dat,m.d_dat,s.wh);
-	return std::move(m);
+	div(d_dat,o.d_dat,o.d_dat,s.wh);
+	return std::move(o);
 }
 Matrix Matrix::operator%(const Matrix&& o) const {
+
+	std::cout << "GET HERE? " << std::endl;
 	//assert(size() == o.size());
-	Matrix m(s);
-	mul(d_dat,o.d_dat,m.d_dat,s.wh);
-	return std::move(m);
+	mul(d_dat,o.d_dat,o.d_dat,s.wh);
+	return std::move(o);
 }
 
 Matrix Matrix::operator+(double o) const {

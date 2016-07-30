@@ -38,61 +38,6 @@ std::vector<Matrix>& ConvNet::FF(std::vector<Matrix>& _I){
 	return *I;
 }
 
-struct ff_info{
-	int id;
-	int b_id;
-	std::vector<Layer*> *L;
-	Batch_t *I;
-	Batch_t *T;
-};
-
-void* FFBP_wrap(void* args){
-	ff_info* info = (ff_info*) args;
-
-	int id = info->id;
-	int b_id = info->b_id; //batch id
-	int nL = info->L->size();
-
-	std::vector<Layer*> *L = info->L;
-	std::vector<Matrix> *I = &info->I[b_id];
-	std::vector<Matrix> *T = &info->T[b_id];
-
-	// FF...
-	for(int l=0;l<nL;++l){
-		//serial op.
-		I = &(*L)[l]->FF(*I, id);
-		//id tells the layer where to store the input.
-		//other than that, exactly the same.
-	}
-
-	// BP...
-	std::vector<Matrix> _G = *T - *I; // I == O in this case
-
-	auto G = &_G;
-
-	for(auto l = nL-2; l >= 0; --l){
-		G = &(*L)[l]->BP(*G,id);
-	}
-
-	pthread_exit(NULL);
-}
-
-void ConvNet::FFBP(Batch_t& _I, Batch_t& _T, std::vector<int>& indices){
-	int n = indices.size();
-	pthread_t* threads = new pthread_t[n];
-	ff_info* info = new ff_info[n];
-
-	for(int i=0;i<n;++i){
-		info[i] = {i,indices[i],&L,&_I};
-		pthread_create(&threads[i],nullptr,FFBP_wrap,(void*) &info[i]);
-	}
-
-	for(int i=0;i<n;++i){
-		pthread_join(threads[i],NULL);
-	}
-	delete[] threads;
-	delete[] ff_info;
-}
 void ConvNet::BP(std::vector<Matrix>& O, std::vector<Matrix>& T){
 	std::vector<Matrix> _G;
 	//setup output gradient

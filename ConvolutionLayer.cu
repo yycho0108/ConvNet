@@ -320,7 +320,6 @@ void ConvolutionLayer::update() {
 		//dW_t[o] /= 128.0;
 		//dB_t[o] /= 128.0; //batch size
 
-
 		W[o] += (dW_p[o] * MOMENTUM) + \
 				(dW_t[o] * ETA) - \
 				(W[o] * DECAY);

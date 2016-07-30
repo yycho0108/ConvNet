@@ -276,6 +276,6 @@ int main(int argc, char* argv[]){
 	//train(net, lim);
 	auto end = std::clock();
 
-	std::cout << (end-start) /CLOCKS_PER_SEC << "SECONDS ELAPSED" << std::endl;
+	std::cout << (end-start) /CLOCKS_PER_SEC << " SECONDS ELAPSED" << std::endl;
 	//test(net,test_data,test_labels);
 }
